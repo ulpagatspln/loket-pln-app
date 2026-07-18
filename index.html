@@ -8,11 +8,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class', // Mengaktifkan Dark Mode manual via class
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        slate: { 850: '#152033' } // Kustom warna gelap
+                        slate: { 850: '#152033' }
                     }
                 }
             }
@@ -20,6 +20,11 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tambahan library untuk Export PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -212,7 +217,7 @@
                 <h3 class="text-sm font-bold text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2"><i
                         class="fa-solid fa-layer-group text-blue-500"></i> Antrean Pekerjaan (Lunas & Belum Dikerjakan)
                 </h3>
-                <div class="grid grid-cols-2 md:grid-cols-5 gap-3" id="dashboard-pipeline"></div>
+                <div id="dashboard-pipeline" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3"></div>
             </div>
 
             <div id="tab-permohonan" class="hidden h-full flex-col">
@@ -229,32 +234,68 @@
 
                 <!-- Filters for Permohonan -->
                 <div
-                    class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col md:flex-row gap-3 mb-4 transition-colors">
-                    <div class="flex-1 relative">
-                        <i
-                            class="fa-solid fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-slate-500"></i>
-                        <input type="text" id="search-permohonan" placeholder="Cari ID, Nama, Agenda, Pemasang..."
-                            class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                            onkeyup="renderPermohonanList()">
+                    class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col gap-3 mb-4 transition-colors">
+                    <div class="flex flex-col md:flex-row gap-3">
+                        <div class="flex-1 relative">
+                            <i
+                                class="fa-solid fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-slate-500"></i>
+                            <input type="text" id="search-permohonan" placeholder="Cari ID, Nama, Agenda, Pemasang..."
+                                class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                                onkeyup="renderPermohonanList()">
+                        </div>
+                        <button onclick="exportPermohonanPDF()"
+                            class="px-4 py-2 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/50 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 text-sm font-semibold flex items-center justify-center gap-2 whitespace-nowrap transition-colors">
+                            <i class="fa-solid fa-file-pdf"></i> Export PDF
+                        </button>
                     </div>
-                    <select id="filter-status-permohonan"
-                        class="px-3 py-2 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-                        onchange="renderPermohonanList()">
-                        <option value="All">Semua Status</option>
-                        <option value="Menunggu Pembayaran">Menunggu Pembayaran</option>
-                        <option value="Lunas">Lunas</option>
-                        <option value="Selesai">Selesai</option>
-                    </select>
-                    <select id="filter-step-permohonan"
-                        class="px-3 py-2 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-                        onchange="renderPermohonanList()">
-                        <option value="All">Semua Tahap Pekerjaan</option>
-                        <option value="0">Belum PPOB (Tahap 1)</option>
-                        <option value="1">Belum Pasang (Tahap 2)</option>
-                        <option value="2">Belum FSO (Tahap 3)</option>
-                        <option value="3">Belum AP2T (Tahap 4)</option>
-                        <option value="4">Belum NIDI & SLO (Tahap 5)</option>
-                    </select>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                        <select id="filter-month-perm"
+                            class="px-3 py-2 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+                            onchange="renderPermohonanList()">
+                            <option value="All">Semua Bulan</option>
+                            <option value="0">Januari</option>
+                            <option value="1">Februari</option>
+                            <option value="2">Maret</option>
+                            <option value="3">April</option>
+                            <option value="4">Mei</option>
+                            <option value="5">Juni</option>
+                            <option value="6">Juli</option>
+                            <option value="7">Agustus</option>
+                            <option value="8">September</option>
+                            <option value="9">Oktober</option>
+                            <option value="10">November</option>
+                            <option value="11">Desember</option>
+                        </select>
+                        <select id="filter-year-perm"
+                            class="px-3 py-2 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+                            onchange="renderPermohonanList()"></select>
+                        <select id="filter-jenis-perm"
+                            class="px-3 py-2 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+                            onchange="renderPermohonanList()">
+                            <option value="All">Semua Layanan</option>
+                            <option value="Pasang Baru">Pasang Baru</option>
+                            <option value="Tambah Daya">Tambah Daya</option>
+                        </select>
+                        <select id="filter-status-permohonan"
+                            class="px-3 py-2 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+                            onchange="renderPermohonanList()">
+                            <option value="All">Semua Status</option>
+                            <option value="Menunggu Pembayaran">Menunggu Pembayaran</option>
+                            <option value="Lunas">Lunas</option>
+                            <option value="Selesai">Selesai</option>
+                        </select>
+                        <select id="filter-step-permohonan"
+                            class="px-3 py-2 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+                            onchange="renderPermohonanList()">
+                            <option value="All">Semua Tahap Pekerjaan</option>
+                            <option value="0">Belum PPOB (Tahap 1)</option>
+                            <option value="1">Belum Pasang (Tahap 2)</option>
+                            <option value="2">Belum FSO (Tahap 3)</option>
+                            <option value="3">Belum AP2T (Tahap 4)</option>
+                            <option value="4">Belum Bayar NIDI/SLO (Tahap 5)</option>
+                            <option value="5">Belum Upload Berkas (Tahap 6)</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div
@@ -655,7 +696,8 @@
                             <option value="step-1">Lunas - Belum Pasang (Tahap 2)</option>
                             <option value="step-2">Lunas - Belum FSO (Tahap 3)</option>
                             <option value="step-3">Lunas - Belum AP2T (Tahap 4)</option>
-                            <option value="step-4">Lunas - Belum NIDI & SLO (Tahap 5)</option>
+                            <option value="step-4">Lunas - Belum Bayar NIDI (Tahap 5)</option>
+                            <option value="step-5">Lunas - Belum Upload Berkas (Tahap 6)</option>
                             <option value="selesai">Selesai 100%</option>
                         </select>
                         <p class="text-[9px] text-red-600 dark:text-red-400 leading-tight">Ubah tahap jika terjadi
@@ -729,7 +771,7 @@
                 <p class="text-xs text-gray-600 dark:text-slate-300" id="prog-layanan">Layanan</p>
             </div>
 
-            <div class="relative pl-3" id="timeline-container">
+            <div class="relative pl-3 max-h-[50vh] overflow-y-auto pr-2" id="timeline-container">
                 <!-- Injected by JS -->
             </div>
         </div>
@@ -743,9 +785,6 @@
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // =========================================================================
-        // 1. MASUKKAN KONFIGURASI FIREBASE ANDA DI SINI
-        // =========================================================================
         const firebaseConfig = {
             apiKey: "AIzaSyACIdEtcYrflNf6xZ3Fmm4So2EXbkBlKiE",
             authDomain: "loket-pln-agats.firebaseapp.com",
@@ -760,49 +799,39 @@
         const auth = getAuth(app);
         let currentUser = null;
 
-        // Referensi langsung ke tabel (collection) milik Anda
         const permCol = collection(db, 'permohonan');
         const kasCol = collection(db, 'kas');
 
         function handleLogin(e) {
-            e.preventDefault(); // Mencegah halaman ter-refresh saat submit
+            e.preventDefault();
             const user = document.getElementById('login-username').value;
             const pass = document.getElementById('login-password').value;
             const errorText = document.getElementById('login-error');
 
-            // Validasi kredensial
             if (user === 'admin' && pass === 'admin') {
-                // Sembunyikan layar login jika sukses
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('login-username').value = '';
                 document.getElementById('login-password').value = '';
                 errorText.classList.add('hidden');
                 showToast('Login berhasil! Selamat datang.', 'success');
             } else {
-                // Munculkan pesan error jika gagal
                 errorText.classList.remove('hidden');
             }
         }
 
-        const PROGRESS_STEPS = ["Pembayaran BP di PPOB", "Pemasangan di Lokasi", "Penginputan FSO", "Peremajaan di AP2T", "Pembuatan NIDI & SLO"];
+        const PROGRESS_STEPS = ["Pembayaran BP di PPOB", "Pemasangan di Lokasi", "Penginputan FSO", "Peremajaan di AP2T", "Pembayaran NIDI & SLO", "Upload Berkas NIDI & SLO"];
 
-        const state = {
-            permohonan: [],
-            kas: []
-        };
-
+        const state = { permohonan: [], kas: [] };
         let tempBayarId = null, totalKas = 0, currentPagePerm = 1, currentPageKas = 1;
         const itemsPerPage = 10, ADMIN_PASS = 'Agats@123';
         let authAction = null;
 
-        // Setup real-time listeners
         function setupRealtimeListeners() {
             if (!currentUser) return;
-
             onSnapshot(permCol, (snapshot) => {
                 state.permohonan = [];
                 snapshot.forEach(doc => state.permohonan.push({ ...doc.data(), id: doc.id }));
-                if (!document.getElementById('tab-permohonan').classList.contains('hidden')) renderPermohonanList();
+                if (!document.getElementById('tab-permohonan').classList.contains('hidden')) { populateYearFilterPerm(); renderPermohonanList(); }
                 if (!document.getElementById('tab-dashboard').classList.contains('hidden')) renderDashboard();
             }, (error) => console.error("Error fetching permohonan:", error));
 
@@ -814,7 +843,6 @@
             }, (error) => console.error("Error fetching kas:", error));
         }
 
-        // Initialize Auth
         async function initAuth() {
             try {
                 await signInAnonymously(auth);
@@ -822,7 +850,7 @@
                 setupRealtimeListeners();
             } catch (error) {
                 console.error("Auth error:", error);
-                showToast("Gagal terhubung ke database. Pastikan koneksi internet stabil.", "error");
+                showToast("Gagal terhubung ke database.", "error");
             }
         }
         initAuth();
@@ -849,7 +877,6 @@
             const textDesk = document.getElementById('dark-mode-text');
             if (iconDesk) iconDesk.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
             if (textDesk) textDesk.innerText = isDark ? 'Light Mode' : 'Dark Mode';
-
             const iconMob = document.getElementById('dark-mode-icon-mob');
             if (iconMob) iconMob.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
         }
@@ -863,7 +890,7 @@
             document.getElementById(`tab-${tabId}`).classList.add(tabId === 'dashboard' ? 'block' : 'flex');
             document.getElementById(`nav-${tabId}`).classList.add('sidebar-active');
             if (tabId === 'dashboard') renderDashboard();
-            if (tabId === 'permohonan') renderPermohonanList();
+            if (tabId === 'permohonan') { populateYearFilterPerm(); renderPermohonanList(); }
             if (tabId === 'kas') { populateYearFilter(); renderKasList(); }
         }
 
@@ -873,6 +900,7 @@
 
         function requestAuth(actionType, id) { authAction = { type: actionType, id: id }; document.getElementById('auth-password').value = ''; document.getElementById('auth-error').classList.add('hidden'); openModal('modal-auth'); }
         function verifyAuth() { if (document.getElementById('auth-password').value === ADMIN_PASS) { closeModal('modal-auth'); executeAuthAction(); } else { document.getElementById('auth-error').classList.remove('hidden'); } }
+
         function executeAuthAction() {
             if (!authAction) return;
             const { type, id } = authAction;
@@ -883,29 +911,28 @@
         }
 
         async function deletePermohonan(id) {
-            if (!currentUser) return;
+            if (!currentUser) return showToast("Sistem belum siap. Coba lagi.", "error");
             await deleteDoc(doc(db, 'permohonan', id));
-
             const kasToDelete = state.kas.filter(k => k.refId === id);
-            for (const k of kasToDelete) {
-                await deleteDoc(doc(db, 'kas', k.id));
-            }
-            closeModal('modal-delete'); showToast('Data dihapus!');
+            for (const k of kasToDelete) { await deleteDoc(doc(db, 'kas', k.id)); }
+            closeModal('modal-delete'); showToast('Data dihapus permanen!');
         }
 
         async function deleteKas(id) {
             if (!currentUser) return;
             await deleteDoc(doc(db, 'kas', id));
-            closeModal('modal-delete'); showToast('Transaksi dihapus!');
+            closeModal('modal-delete'); showToast('Transaksi dihapus permanen!');
         }
 
         function renderDashboard() {
             totalKas = calculateSaldo();
-            let wP = 0, lunas = 0, s0 = 0, s1 = 0, s2 = 0, s3 = 0, s4 = 0;
+            let wP = 0, lunas = 0, s0 = 0, s1 = 0, s2 = 0, s3 = 0, s4 = 0, s5 = 0;
             state.permohonan.forEach(p => {
                 if (p.status === 'Menunggu Pembayaran') wP++;
                 if (p.status === 'Lunas' || p.status === 'Selesai') lunas++;
-                if (p.status === 'Lunas') { if (p.step === 0) s0++; else if (p.step === 1) s1++; else if (p.step === 2) s2++; else if (p.step === 3) s3++; else if (p.step === 4) s4++; }
+                if (p.status === 'Lunas') {
+                    if (p.step === 0) s0++; else if (p.step === 1) s1++; else if (p.step === 2) s2++; else if (p.step === 3) s3++; else if (p.step === 4) s4++; else if (p.step === 5) s5++;
+                }
             });
 
             document.getElementById('dashboard-metrics').innerHTML = `
@@ -951,24 +978,49 @@
                     <div class="flex justify-between items-end"><span class="text-2xl font-bold text-gray-900 dark:text-white">${s3}</span><i class="fa-solid fa-server text-pink-100 dark:text-pink-900 text-2xl"></i></div>
                 </div>
                 <div onclick="goToPermohonanFilter('Lunas', '4')" class="bg-white dark:bg-slate-800 p-4 rounded-xl border-l-4 border-teal-500 border-y border-r border-gray-100 dark:border-y-slate-700 dark:border-r-slate-700 cursor-pointer hover:-translate-y-1 flex flex-col justify-between h-24">
-                    <p class="text-xs font-semibold text-gray-600 dark:text-slate-300 leading-tight">Belum NIDI & SLO</p>
-                    <div class="flex justify-between items-end"><span class="text-2xl font-bold text-gray-900 dark:text-white">${s4}</span><i class="fa-solid fa-file-signature text-teal-100 dark:text-teal-900 text-2xl"></i></div>
+                    <p class="text-[11px] font-semibold text-gray-600 dark:text-slate-300 leading-tight">Belum Bayar NIDI & SLO</p>
+                    <div class="flex justify-between items-end"><span class="text-2xl font-bold text-gray-900 dark:text-white">${s4}</span><i class="fa-solid fa-money-check-dollar text-teal-100 dark:text-teal-900 text-2xl"></i></div>
+                </div>
+                <div onclick="goToPermohonanFilter('Lunas', '5')" class="bg-white dark:bg-slate-800 p-4 rounded-xl border-l-4 border-emerald-500 border-y border-r border-gray-100 dark:border-y-slate-700 dark:border-r-slate-700 cursor-pointer hover:-translate-y-1 flex flex-col justify-between h-24">
+                    <p class="text-[11px] font-semibold text-gray-600 dark:text-slate-300 leading-tight">Belum Upload Berkas NIDI</p>
+                    <div class="flex justify-between items-end"><span class="text-2xl font-bold text-gray-900 dark:text-white">${s5}</span><i class="fa-solid fa-file-signature text-emerald-100 dark:text-emerald-900 text-2xl"></i></div>
                 </div>
             `;
         }
 
-        function renderPermohonanList() {
+        function populateYearFilterPerm() {
+            const years = new Set(state.permohonan.map(p => new Date(p.date).getFullYear()));
+            const select = document.getElementById('filter-year-perm');
+            if (!select) return;
+            select.innerHTML = '<option value="All">Semua Tahun</option>';
+            Array.from(years).sort().reverse().forEach(y => select.innerHTML += `<option value="${y}">${y}</option>`);
+        }
+
+        function getFilteredPermohonan() {
             const search = document.getElementById('search-permohonan').value.toLowerCase();
             const statusFilter = document.getElementById('filter-status-permohonan').value;
             const stepFilter = document.getElementById('filter-step-permohonan').value;
+            const monthFilter = document.getElementById('filter-month-perm').value;
+            const yearFilter = document.getElementById('filter-year-perm').value;
+            const jenisFilter = document.getElementById('filter-jenis-perm').value;
 
             let filtered = state.permohonan.filter(p => {
+                const d = new Date(p.date);
                 const matchSearch = p.id.toLowerCase().includes(search) || p.nama.toLowerCase().includes(search) || p.jenis.toLowerCase().includes(search) || (p.noAgenda && p.noAgenda.toLowerCase().includes(search)) || (p.namaPemasang && p.namaPemasang.toLowerCase().includes(search));
                 const matchStatus = statusFilter === 'All' || p.status === statusFilter;
                 const matchStep = stepFilter === 'All' || (p.status === 'Lunas' && p.step == stepFilter);
-                return matchSearch && matchStatus && matchStep;
+                const matchMonth = monthFilter === 'All' || d.getMonth() === parseInt(monthFilter);
+                const matchYear = yearFilter === 'All' || d.getFullYear() === parseInt(yearFilter);
+                const matchJenis = jenisFilter === 'All' || p.jenis === jenisFilter;
+
+                return matchSearch && matchStatus && matchStep && matchMonth && matchYear && matchJenis;
             });
             filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+            return filtered;
+        }
+
+        function renderPermohonanList() {
+            let filtered = getFilteredPermohonan();
 
             const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
             if (currentPagePerm > totalPages) currentPagePerm = totalPages;
@@ -995,28 +1047,26 @@
                 }
 
                 if (p.status === 'Menunggu Pembayaran') statusBadge = `<span class="px-2.5 py-1 bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400 rounded-md text-xs font-semibold">Menunggu Pembayaran</span>`;
-                else if (isLunas) statusBadge = `<div class="flex items-center gap-1.5"><span class="px-2.5 py-1 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 rounded-md text-xs font-semibold block w-max">Lunas</span>${linkBuktiHtml}</div><span class="text-[10px] text-blue-600 dark:text-blue-400 font-medium mt-1 block">Tahap Aktif: ${p.step === 5 ? 5 : p.step + 1}/5<br>${PROGRESS_STEPS[p.step] || 'Selesai'}</span>`;
+                else if (isLunas) statusBadge = `<div class="flex items-center gap-1.5"><span class="px-2.5 py-1 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 rounded-md text-xs font-semibold block w-max">Lunas</span>${linkBuktiHtml}</div><span class="text-[10px] text-blue-600 dark:text-blue-400 font-medium mt-1 block">Tahap Aktif: ${p.step === 6 ? 6 : p.step + 1}/6<br>${PROGRESS_STEPS[p.step] || 'Selesai'}</span>`;
                 else if (isSelesai) statusBadge = `<div class="flex items-center gap-1.5"><span class="px-2.5 py-1 bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-400 rounded-md text-xs font-semibold block w-max">Selesai 100%</span>${linkBuktiHtml}</div><span class="text-[10px] text-teal-600 dark:text-teal-400 font-medium mt-1 block">Semua Tahap Selesai</span>`;
 
                 const actionBtn = p.status === 'Menunggu Pembayaran'
                     ? `<button onclick="bukaFormBayar('${p.id}')" class="px-3 py-1.5 bg-blue-600 text-white rounded-md text-xs font-semibold hover:bg-blue-700 w-full mb-1">Bayar</button>`
                     : `<button onclick="openProgressModal('${p.id}')" class="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800/50 text-indigo-700 dark:text-indigo-400 rounded-md text-xs font-semibold hover:bg-indigo-100 dark:hover:bg-indigo-900/50 w-full mb-1">Progres</button>`;
 
-                // Cari data transaksi kas yang terkait dengan permohonan ini
+                let infoPengerjaanHtml = '';
+                if (p.noAgenda) infoPengerjaanHtml += `<div class="text-[10px] text-gray-600 dark:text-slate-400 font-medium"><i class="fa-solid fa-hashtag text-gray-400 dark:text-slate-500 w-3 text-center mr-0.5"></i> Agenda: <span class="text-gray-900 dark:text-white font-bold">${p.noAgenda}</span></div>`;
+                if (p.namaPemasang) infoPengerjaanHtml += `<div class="text-[10px] text-gray-600 dark:text-slate-400 font-medium mt-1"><i class="fa-solid fa-hard-hat text-gray-400 dark:text-slate-500 w-3 text-center mr-0.5"></i> Pemasang: <span class="text-gray-900 dark:text-white font-bold">${p.namaPemasang}</span></div>`;
+
                 const trxPPOB = state.kas.find(k => k.refId === p.id && k.ket.includes('PPOB'));
                 const trxPasang = state.kas.find(k => k.refId === p.id && k.ket.includes('Pemasangan'));
-                const trxNidi = state.kas.find(k => k.refId === p.id && k.ket.includes('NIDI'));
+                const trxNIDI = state.kas.find(k => k.refId === p.id && k.ket.includes('NIDI'));
 
-                let infoPengerjaanHtml = '';
-                if (p.noAgenda) infoPengerjaanHtml += `<div class="text-[10px] text-gray-600 dark:text-slate-400 font-medium"><i class="fa-solid fa-hashtag text-gray-400 dark:text-slate-500 w-4 text-center"></i>Agenda: <span class="text-gray-900 dark:text-white font-bold">${p.noAgenda}</span></div>`;
-                if (p.namaPemasang) infoPengerjaanHtml += `<div class="text-[10px] text-gray-600 dark:text-slate-400 font-medium mt-0.5"><i class="fa-solid fa-hard-hat text-gray-400 dark:text-slate-500 w-4 text-center"></i>Pemasang: <span class="text-gray-900 dark:text-white font-bold">${p.namaPemasang}</span></div>`;
+                if (trxPPOB) infoPengerjaanHtml += `<div class="text-[10px] text-red-600 dark:text-red-400 font-medium mt-1"><i class="fa-solid fa-money-bill-transfer w-3 text-center mr-0.5"></i> PPOB: <b>${formatRp(trxPPOB.nominal)}</b></div>`;
+                if (trxPasang) infoPengerjaanHtml += `<div class="text-[10px] text-red-600 dark:text-red-400 font-medium mt-1"><i class="fa-solid fa-helmet-safety w-3 text-center mr-0.5"></i> Pasang: <b>${formatRp(trxPasang.nominal)}</b></div>`;
+                if (trxNIDI) infoPengerjaanHtml += `<div class="text-[10px] text-red-600 dark:text-red-400 font-medium mt-1"><i class="fa-solid fa-file-signature w-3 text-center mr-0.5"></i> NIDI/SLO: <b>${formatRp(trxNIDI.nominal)}</b></div>`;
 
-                // Tambahkan info nominal biaya
-                if (trxPPOB) infoPengerjaanHtml += `<div class="text-[10px] text-red-600 dark:text-red-400 font-medium mt-1"><i class="fa-solid fa-money-bill-transfer text-red-400 dark:text-red-500 w-4 text-center"></i>BP PPOB: <span class="font-bold">${formatRp(trxPPOB.nominal)}</span></div>`;
-                if (trxPasang) infoPengerjaanHtml += `<div class="text-[10px] text-red-600 dark:text-red-400 font-medium mt-0.5"><i class="fa-solid fa-helmet-safety text-red-400 dark:text-red-500 w-4 text-center"></i>Pasang: <span class="font-bold">${formatRp(trxPasang.nominal)}</span></div>`;
-                if (trxNidi) infoPengerjaanHtml += `<div class="text-[10px] text-red-600 dark:text-red-400 font-medium mt-0.5"><i class="fa-solid fa-file-signature text-red-400 dark:text-red-500 w-4 text-center"></i>NIDI/SLO: <span class="font-bold">${formatRp(trxNidi.nominal)}</span></div>`;
-
-                if (!infoPengerjaanHtml) infoPengerjaanHtml = `<span class="text-xs text-gray-400 dark:text-slate-500 italic">Belum ada info</span>`;
+                if (!p.noAgenda && !p.namaPemasang && !trxPPOB) infoPengerjaanHtml = `<span class="text-xs text-gray-400 dark:text-slate-500 italic">Belum ada info</span>`;
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-gray-50/50 dark:hover:bg-slate-700/50 transition-colors">
@@ -1039,6 +1089,54 @@
             });
         }
         function changePagePerm(delta) { currentPagePerm += delta; renderPermohonanList(); }
+
+        function exportPermohonanPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('landscape'); // Menggunakan orientasi horizontal agar tabel muat
+            const filteredData = getFilteredPermohonan();
+
+            if (filteredData.length === 0) return showToast('Tidak ada data untuk diexport!', 'error');
+
+            // Header Laporan
+            doc.setFontSize(14);
+            doc.text('Laporan Rekap Permohonan ULP Agats', 14, 15);
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.text(`Waktu Cetak: ${formatDate(new Date().toISOString())}`, 14, 22);
+
+            const tableColumn = ["No", "ID Permohonan", "Tgl Input", "Nama Pelanggan", "Layanan", "Daya", "Status Terakhir", "Total Biaya"];
+            const tableRows = [];
+
+            // Memasukkan data ke baris tabel
+            filteredData.forEach((p, index) => {
+                const rowData = [
+                    index + 1,
+                    p.id,
+                    formatDate(p.date).split(',')[0],
+                    p.nama,
+                    p.jenis,
+                    `${p.daya} VA`,
+                    p.status === 'Lunas' ? (p.step === 6 ? 'Selesai 100%' : `Lunas (Tahap ${p.step + 1})`) : p.status,
+                    formatRp(p.biaya)
+                ];
+                tableRows.push(rowData);
+            });
+
+            // Generate Tabel
+            doc.autoTable({
+                head: [tableColumn],
+                body: tableRows,
+                startY: 28,
+                theme: 'grid',
+                styles: { fontSize: 8 },
+                headStyles: { fillColor: [37, 99, 235] }, // Warna biru Tailwind
+                alternateRowStyles: { fillColor: [248, 250, 252] } // Warna abu muda
+            });
+
+            // Menyimpan file PDF
+            doc.save(`Laporan_Permohonan_${new Date().getTime()}.pdf`);
+            showToast('Laporan PDF berhasil diunduh!', 'success');
+        }
 
         function bukaFormTambahPerm() {
             ['edit-perm-id', 'add-nik', 'add-nama', 'add-alamat', 'add-kel', 'add-kec', 'add-kab', 'add-prov', 'add-lat', 'add-long', 'add-tarif', 'add-daya', 'add-biaya'].forEach(el => document.getElementById(el).value = '');
@@ -1075,15 +1173,16 @@
                     tarif: document.getElementById('add-tarif').value, daya: daya, biaya: parseInt(biaya)
                 };
                 const progVal = document.getElementById('edit-progress').value;
-                if (progVal === 'menunggu') { updates.status = 'Menunggu Pembayaran'; updates.step = 0; } else if (progVal === 'selesai') { updates.status = 'Selesai'; updates.step = 5; } else if (progVal.startsWith('step-')) { updates.status = 'Lunas'; updates.step = parseInt(progVal.split('-')[1]); }
+                if (progVal === 'menunggu') { updates.status = 'Menunggu Pembayaran'; updates.step = 0; } else if (progVal === 'selesai') { updates.status = 'Selesai'; updates.step = 6; } else if (progVal.startsWith('step-')) { updates.status = 'Lunas'; updates.step = parseInt(progVal.split('-')[1]); }
 
                 await setDoc(doc(db, 'permohonan', id), updates, { merge: true });
-                showToast('Data diperbarui!');
+                showToast('Data diperbarui secara permanen!');
             } else {
                 const newId = generateId('REQ');
                 const newData = { id: newId, nik, nama, alamat, jenis: document.getElementById('add-jenis').value, daya, biaya: parseInt(biaya), kelurahan: document.getElementById('add-kel').value, kecamatan: document.getElementById('add-kec').value, kabupaten: document.getElementById('add-kab').value, provinsi: document.getElementById('add-prov').value, lat: document.getElementById('add-lat').value, long: document.getElementById('add-long').value, tarif: document.getElementById('add-tarif').value, status: 'Menunggu Pembayaran', date: new Date().toISOString(), step: 0 };
+
                 await setDoc(doc(db, 'permohonan', newId), newData);
-                showToast('Permohonan ditambahkan!');
+                showToast('Permohonan ditambahkan ke database!');
             }
             closeModal('modal-add');
         }
@@ -1104,16 +1203,15 @@
         }
 
         async function prosesBayar() {
-            if (!currentUser) return;
+            if (!currentUser) return showToast("Sistem belum siap. Coba lagi.", "error");
             const nom = parseInt(document.getElementById('bayar-nominal').value), link = document.getElementById('bayar-link').value, p = state.permohonan.find(x => x.id === tempBayarId);
             if (nom < p.biaya) return showToast('Nominal kurang!', 'error'); if (!link.trim()) return showToast('Masukkan link GDrive!', 'error');
 
             await setDoc(doc(db, 'permohonan', p.id), { status: 'Lunas', step: 0 }, { merge: true });
-
             const kId = generateId('K');
             await setDoc(doc(db, 'kas', kId), { id: kId, date: new Date().toISOString(), ket: `Pembayaran ${p.jenis} - ID: ${p.id}`, tipe: 'Pemasukan', nominal: nom, refId: p.id, link: link });
 
-            closeModal('modal-bayar'); showToast('Pembayaran dicatat!');
+            closeModal('modal-bayar'); showToast('Pembayaran dicatat ke database!');
         }
 
         function openProgressModal(id) {
@@ -1129,34 +1227,49 @@
                 let html = `<div class="relative pb-8">${i < PROGRESS_STEPS.length - 1 ? `<div class="absolute top-8 left-[11px] w-px h-full ${isCompleted ? 'bg-green-500' : 'bg-gray-200 dark:bg-slate-700'}"></div>` : ''}<div class="flex items-start"><div class="w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 mr-3 ${iconClass} z-10 bg-white dark:bg-slate-800">${isCompleted ? '<i class="fa-solid fa-check text-xs"></i>' : (isActive ? '<div class="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-500"></div>' : '')}</div><div class="flex-1"><h5 class="text-sm ${textClass}">${PROGRESS_STEPS[i]}</h5>`;
 
                 if (isCompleted) {
-                    if (i === 0 && p.noAgenda) html += `<div class="text-xs text-gray-600 dark:text-slate-400 mt-1"><i class="fa-solid fa-hashtag w-4"></i> Agenda: <span class="text-gray-900 dark:text-white font-bold">${p.noAgenda}</span></div>`;
-                    if (i === 1 && p.namaPemasang) html += `<div class="text-xs text-gray-600 dark:text-slate-400 mt-1"><i class="fa-solid fa-hard-hat w-4"></i> Pemasang: <span class="text-gray-900 dark:text-white font-bold">${p.namaPemasang}</span></div>`;
+                    if (i === 0 && p.noAgenda) html += `<div class="text-xs text-gray-600 dark:text-slate-400 mt-1"><i class="fa-solid fa-hashtag w-3 text-center mr-1"></i> Agenda: <span class="text-gray-900 dark:text-white font-bold">${p.noAgenda}</span></div>`;
+                    if (i === 1 && p.namaPemasang) html += `<div class="text-xs text-gray-600 dark:text-slate-400 mt-1"><i class="fa-solid fa-hard-hat w-3 text-center mr-1"></i> Pemasang: <span class="text-gray-900 dark:text-white font-bold">${p.namaPemasang}</span></div>`;
+
                     const trx = state.kas.find(k => k.refId === p.id && (i === 0 ? k.ket.includes('PPOB') : i === 1 ? k.ket.includes('Pemasangan') : i === 4 ? k.ket.includes('NIDI') : false));
 
-                    // Menampilkan nominal biaya
-                    if (trx && trx.nominal) {
-                        html += `<div class="text-xs text-red-600 dark:text-red-400 mt-1"><i class="fa-solid fa-money-bill-wave w-4 text-center"></i> Biaya: <span class="font-bold">${formatRp(trx.nominal)}</span></div>`;
-                    }
-
+                    if (trx && trx.nominal) html += `<div class="text-[11px] text-red-600 dark:text-red-400 font-bold mt-1.5 mb-1"><i class="fa-solid fa-money-bill-wave w-3 text-center mr-1"></i> Biaya: ${formatRp(trx.nominal)}</div>`;
                     if (trx && trx.link) html += `<a href="${trx.link}" target="_blank" class="inline-block mt-2 px-3 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-slate-600 rounded-lg text-xs font-semibold hover:bg-gray-200 dark:hover:bg-slate-600"><i class="fa-solid fa-arrow-up-right-from-square"></i> Cek Bukti GDrive</a>`;
+
+                    if (i === 5 && p.linkNidiSlo) html += `<a href="${p.linkNidiSlo}" target="_blank" class="inline-block mt-2 px-3 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-slate-600 rounded-lg text-xs font-semibold hover:bg-gray-200 dark:hover:bg-slate-600"><i class="fa-solid fa-arrow-up-right-from-square"></i> Cek Berkas GDrive</a>`;
                 }
 
                 if (isActive) {
-                    if (i === 0 || i === 1 || i === 4) {
+                    if (i === 0 || i === 1 || i === 4 || i === 5) {
                         html += `<div class="mt-3 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800/50">`;
+
                         if (i === 0) html += `<label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Nomor Agenda *</label><input type="text" id="prog-agenda-${i}" class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg mb-3">`;
                         if (i === 1) html += `<label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Nama Pemasang di Lokasi *</label><input type="text" id="prog-pemasang-${i}" class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg mb-3">`;
 
-                        let gdriveLink = i === 0 ? "https://drive.google.com/drive/folders/1oMLkpUG3Clv2Gi6VsQj5HQtdV5l-cLfd?usp=sharing" : (i === 1 ? "https://drive.google.com/drive/folders/1moVXOQAdRKBWkeb_3wBU4mLVtrxf2-n-?usp=sharing" : "https://drive.google.com/drive/folders/1jaXRZhCgj8aMzxTx4MW-CCDv1Q3UWBcj?usp=sharing");
+                        if (i === 0 || i === 1 || i === 5) {
+                            let gdriveLink = i === 0 ? "https://drive.google.com/drive/folders/1oMLkpUG3Clv2Gi6VsQj5HQtdV5l-cLfd?usp=sharing" : (i === 1 ? "https://drive.google.com/drive/folders/1moVXOQAdRKBWkeb_3wBU4mLVtrxf2-n-?usp=sharing" : "https://drive.google.com/drive/folders/1jaXRZhCgj8aMzxTx4MW-CCDv1Q3UWBcj?usp=sharing");
+                            let labelText = (i === 5) ? "Link Upload Berkas (GDrive) *" : "Link Bukti (GDrive) *";
+                            html += `<div class="flex justify-between items-end mb-1">
+                                        <label class="block text-xs font-medium text-gray-700 dark:text-slate-300">${labelText}</label>
+                                        <a href="${gdriveLink}" target="_blank" class="text-[10px] text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"><i class="fa-solid fa-folder-open"></i> Buka Folder GDrive</a>
+                                     </div>
+                                     <input type="text" id="prog-link-${i}" class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg mb-3">`;
+                        }
 
-                        html += `<div class="flex justify-between items-end mb-1">
-                                    <label class="block text-xs font-medium text-gray-700 dark:text-slate-300">Link Bukti (GDrive) *</label>
-                                    <a href="${gdriveLink}" target="_blank" class="text-[10px] text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"><i class="fa-solid fa-folder-open"></i> Buka Folder GDrive</a>
-                                 </div>
-                                 <input type="text" id="prog-link-${i}" class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg mb-3">`;
-                        html += `<label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Biaya Pengeluaran Kas (Rp) *</label><input type="number" id="prog-cost-${i}" class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg mb-3">`;
-                        html += `<button onclick="updateProgressStepWithCost('${p.id}', ${i}, '${i === 0 ? 'Biaya Pembayaran BP di PPOB' : i === 1 ? 'Biaya Pemasangan di Lokasi' : 'Biaya Pembuatan NIDI & SLO'}')" class="w-full px-3 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700"><i class="fa-solid fa-check"></i> Selesaikan</button></div>`;
-                    } else html += `<button onclick="updateProgressStep('${p.id}', ${i})" class="mt-2 px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-md hover:bg-blue-700">Selesaikan Tahap Ini</button>`;
+                        if (i === 0 || i === 1 || i === 4) {
+                            html += `<label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Biaya Pengeluaran Kas (Rp) *</label><input type="number" id="prog-cost-${i}" class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg mb-3">`;
+                        }
+
+                        let fnCall = '';
+                        if (i === 0) fnCall = `updateProgressStepWithCost('${p.id}', 0, 'Biaya Pembayaran BP di PPOB')`;
+                        if (i === 1) fnCall = `updateProgressStepWithCost('${p.id}', 1, 'Biaya Pemasangan di Lokasi')`;
+                        if (i === 4) fnCall = `updateProgressStepWithCost('${p.id}', 4, 'Biaya Pembayaran NIDI & SLO')`;
+                        if (i === 5) fnCall = `updateProgressStepBerkas('${p.id}', 5)`;
+
+                        html += `<button onclick="${fnCall}" class="w-full px-3 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700"><i class="fa-solid fa-check"></i> Selesaikan</button></div>`;
+
+                    } else {
+                        html += `<button onclick="updateProgressStep('${p.id}', ${i})" class="mt-2 px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-md hover:bg-blue-700">Selesaikan Tahap Ini</button>`;
+                    }
                 }
                 html += `</div></div></div>`; container.innerHTML += html;
             }
@@ -1164,21 +1277,42 @@
         }
 
         async function updateProgressStepWithCost(id, stepIndex, costName) {
-            if (!currentUser) return;
+            if (!currentUser) return showToast("Sistem belum siap. Coba lagi.", "error");
             const p = state.permohonan.find(x => x.id === id); if (!p || p.step !== stepIndex) return;
-            const costInput = document.getElementById(`prog-cost-${stepIndex}`).value, linkInput = document.getElementById(`prog-link-${stepIndex}`).value;
+
+            const costInput = document.getElementById(`prog-cost-${stepIndex}`).value;
+            let linkInput = '';
+
+            if (stepIndex === 0 || stepIndex === 1) {
+                linkInput = document.getElementById(`prog-link-${stepIndex}`).value;
+                if (!linkInput.trim()) return showToast('Masukkan link GDrive!', 'error');
+            }
+
             let agendaInput = '', pemasangInput = '';
             if (stepIndex === 0) { agendaInput = document.getElementById(`prog-agenda-${stepIndex}`).value; if (!agendaInput.trim()) return showToast('Masukkan Nomor Agenda!', 'error'); }
             if (stepIndex === 1) { pemasangInput = document.getElementById(`prog-pemasang-${stepIndex}`).value; if (!pemasangInput.trim()) return showToast('Masukkan Nama Pemasang!', 'error'); }
-            if (!costInput || costInput <= 0) return showToast('Masukkan biaya pengeluaran!', 'error');
-            if (!linkInput.trim()) return showToast('Masukkan link GDrive!', 'error');
 
+            if (!costInput || costInput <= 0) return showToast('Masukkan biaya pengeluaran!', 'error');
             if (calculateSaldo() < parseInt(costInput)) return showToast('Saldo kas tidak mencukupi!', 'error');
 
             const kId = generateId('K');
-            await setDoc(doc(db, 'kas', kId), { id: kId, date: new Date().toISOString(), ket: `${costName} (${p.id})${stepIndex === 0 ? ` - Agenda: ${agendaInput}` : stepIndex === 1 ? ` - Pemasang: ${pemasangInput}` : ''}`, tipe: 'Pengeluaran', nominal: parseInt(costInput), refId: p.id, link: linkInput });
+            let kasData = { id: kId, date: new Date().toISOString(), ket: `${costName} (${p.id})${stepIndex === 0 ? ` - Agenda: ${agendaInput}` : stepIndex === 1 ? ` - Pemasang: ${pemasangInput}` : ''}`, tipe: 'Pengeluaran', nominal: parseInt(costInput), refId: p.id };
+            if (linkInput) kasData.link = linkInput;
 
+            await setDoc(doc(db, 'kas', kId), kasData);
             updateProgressStep(id, stepIndex, agendaInput, pemasangInput);
+        }
+
+        async function updateProgressStepBerkas(id, stepIndex) {
+            if (!currentUser) return showToast("Sistem belum siap. Coba lagi.", "error");
+            const p = state.permohonan.find(x => x.id === id); if (!p || p.step !== stepIndex) return;
+
+            const linkInput = document.getElementById(`prog-link-${stepIndex}`).value;
+            if (!linkInput.trim()) return showToast('Masukkan link Berkas GDrive!', 'error');
+
+            await setDoc(doc(db, 'permohonan', id), { linkNidiSlo: linkInput, step: stepIndex + 1, status: 'Selesai' }, { merge: true });
+            showToast('Seluruh Tahap Selesai!');
+            openProgressModal(id);
         }
 
         async function updateProgressStep(id, stepIndex, agendaInput = '', pemasangInput = '') {
@@ -1191,12 +1325,12 @@
                 if (pemasangInput) updates.namaPemasang = pemasangInput;
 
                 await setDoc(doc(db, 'permohonan', id), updates, { merge: true });
-                showToast('Tahap selesai!'); openProgressModal(id);
+                showToast('Tahap selesai dan disimpan!'); openProgressModal(id);
             }
         }
 
         async function prosesTarikKas() {
-            if (!currentUser) return;
+            if (!currentUser) return showToast("Sistem belum siap. Coba lagi.", "error");
             const nominal = parseInt(document.getElementById('tarik-nominal').value), ket = document.getElementById('tarik-ket').value;
             if (!nominal || nominal <= 0) return showToast('Nominal tidak valid!', 'error'); if (!ket.trim()) return showToast('Keterangan wajib!', 'error');
             if (nominal > calculateSaldo()) return showToast('Saldo tidak cukup!', 'error');
@@ -1204,7 +1338,7 @@
             const kId = generateId('TRK');
             await setDoc(doc(db, 'kas', kId), { id: kId, date: new Date().toISOString(), ket: ket, tipe: 'Penarikan', nominal: nominal });
 
-            closeModal('modal-tarik-kas'); showToast('Penarikan sukses!'); document.getElementById('tarik-nominal').value = ''; document.getElementById('tarik-ket').value = '';
+            closeModal('modal-tarik-kas'); showToast('Penarikan sukses dicatat!'); document.getElementById('tarik-nominal').value = ''; document.getElementById('tarik-ket').value = '';
         }
 
         function populateYearFilter() {
@@ -1253,12 +1387,12 @@
         function openEditKas(id) { const k = state.kas.find(x => x.id === id); if (!k) return; document.getElementById('edit-kas-id').value = k.id; document.getElementById('edit-kas-ket').value = k.ket; document.getElementById('edit-kas-nominal').value = k.nominal; openModal('modal-edit-kas'); }
 
         async function saveEditKas() {
-            if (!currentUser) return;
+            if (!currentUser) return showToast("Sistem belum siap. Coba lagi.", "error");
             const id = document.getElementById('edit-kas-id').value, ket = document.getElementById('edit-kas-ket').value, nom = parseInt(document.getElementById('edit-kas-nominal').value);
             if (!ket || !nom) return showToast('Isi semua kolom!', 'error');
 
             await setDoc(doc(db, 'kas', id), { ket: ket, nominal: nom }, { merge: true });
-            showToast('Kas diperbarui!'); closeModal('modal-edit-kas');
+            showToast('Kas diperbarui permanen!'); closeModal('modal-edit-kas');
         }
 
         window.handleLogin = handleLogin;
@@ -1275,6 +1409,7 @@
         window.renderDashboard = renderDashboard;
         window.renderPermohonanList = renderPermohonanList;
         window.changePagePerm = changePagePerm;
+        window.exportPermohonanPDF = exportPermohonanPDF;
         window.bukaFormTambahPerm = bukaFormTambahPerm;
         window.openEditPermohonan = openEditPermohonan;
         window.simpanPermohonan = simpanPermohonan;
@@ -1284,6 +1419,7 @@
         window.prosesBayar = prosesBayar;
         window.openProgressModal = openProgressModal;
         window.updateProgressStepWithCost = updateProgressStepWithCost;
+        window.updateProgressStepBerkas = updateProgressStepBerkas;
         window.updateProgressStep = updateProgressStep;
         window.prosesTarikKas = prosesTarikKas;
         window.renderKasList = renderKasList;
