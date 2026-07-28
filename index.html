@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Tambahan library untuk Export PDF -->
+    <!-- Library untuk Export PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
@@ -30,7 +30,6 @@
             font-family: 'Inter', sans-serif;
         }
 
-        /* Dark mode active states */
         .sidebar-active {
             background-color: #eff6ff;
             color: #1d4ed8;
@@ -43,7 +42,6 @@
             border-right: 3px solid #3b82f6;
         }
 
-        /* Scrollbar styling */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -66,7 +64,6 @@
             background: #94a3b8;
         }
 
-        /* Modal Animation */
         .modal-enter {
             animation: fadeIn 0.2s ease-out forwards;
         }
@@ -142,8 +139,7 @@
             <div class="h-16 flex items-center px-6 border-b border-gray-100 dark:border-slate-700">
                 <div
                     class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold mr-3 shadow-sm shadow-blue-500/30">
-                    <i class="fa-solid fa-bolt"></i>
-                </div>
+                    <i class="fa-solid fa-bolt"></i></div>
                 <div>
                     <h1 class="text-sm font-bold text-gray-900 dark:text-white leading-tight">Loket PLN</h1>
                     <p class="text-[10px] text-gray-500 dark:text-slate-400">ULP Agats</p>
@@ -151,17 +147,14 @@
             </div>
             <nav class="mt-4 flex flex-col gap-1 px-3">
                 <a href="#" onclick="switchTab('dashboard')" id="nav-dashboard"
-                    class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors sidebar-active">
-                    <i class="fa-solid fa-chart-pie w-5 mr-2"></i> Dashboard
-                </a>
+                    class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors sidebar-active"><i
+                        class="fa-solid fa-chart-pie w-5 mr-2"></i> Dashboard</a>
                 <a href="#" onclick="switchTab('permohonan')" id="nav-permohonan"
-                    class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">
-                    <i class="fa-solid fa-file-signature w-5 mr-2"></i> Permohonan & Loket
-                </a>
+                    class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"><i
+                        class="fa-solid fa-file-signature w-5 mr-2"></i> Permohonan & Loket</a>
                 <a href="#" onclick="switchTab('kas')" id="nav-kas"
-                    class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">
-                    <i class="fa-solid fa-book w-5 mr-2"></i> Buku Kas
-                </a>
+                    class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"><i
+                        class="fa-solid fa-book w-5 mr-2"></i> Buku Kas</a>
             </nav>
         </div>
         <div class="p-4 border-t border-gray-100 dark:border-slate-700">
@@ -175,7 +168,6 @@
                             class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Online</p>
                 </div>
             </div>
-            <!-- Dark Mode Toggle Desktop -->
             <button onclick="toggleDarkMode()"
                 class="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-all focus:outline-none">
                 <i id="dark-mode-icon" class="fa-solid fa-sun"></i> <span id="dark-mode-text">Light Mode</span>
@@ -186,7 +178,6 @@
     <!-- Main Content -->
     <main
         class="flex-1 flex flex-col h-screen overflow-hidden bg-[#f8fafc] dark:bg-slate-900 transition-colors duration-300">
-
         <header
             class="h-14 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between px-4 md:hidden transition-colors duration-300">
             <div class="flex items-center gap-2">
@@ -202,24 +193,23 @@
             </div>
         </header>
 
-        <!-- Scrollable Content Area -->
         <div class="flex-1 overflow-y-auto p-4 md:p-6 pb-24">
 
+            <!-- Dashboard Tab -->
             <div id="tab-dashboard" class="block">
                 <div class="mb-6">
                     <h2 class="text-xl font-bold text-gray-900 dark:text-white">Dashboard</h2>
                     <p class="text-sm text-gray-500 dark:text-slate-400">Ringkasan kas dan monitoring progres
                         permohonan.</p>
                 </div>
-
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8" id="dashboard-metrics"></div>
-
                 <h3 class="text-sm font-bold text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2"><i
                         class="fa-solid fa-layer-group text-blue-500"></i> Antrean Pekerjaan (Lunas & Belum Dikerjakan)
                 </h3>
                 <div id="dashboard-pipeline" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3"></div>
             </div>
 
+            <!-- Permohonan Tab -->
             <div id="tab-permohonan" class="hidden h-full flex-col">
                 <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-4">
                     <div>
@@ -227,12 +217,10 @@
                         <p class="text-sm text-gray-500 dark:text-slate-400">Daftar pelanggan dan proses pembayaran</p>
                     </div>
                     <button onclick="bukaFormTambahPerm()"
-                        class="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 shadow-sm transition-all flex items-center gap-2">
-                        <i class="fa-solid fa-plus"></i> Tambah Permohonan
-                    </button>
+                        class="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 shadow-sm transition-all flex items-center gap-2"><i
+                            class="fa-solid fa-plus"></i> Tambah Permohonan</button>
                 </div>
 
-                <!-- Filters for Permohonan -->
                 <div
                     class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col gap-3 mb-4 transition-colors">
                     <div class="flex flex-col md:flex-row gap-3">
@@ -244,9 +232,8 @@
                                 onkeyup="renderPermohonanList()">
                         </div>
                         <button onclick="exportPermohonanPDF()"
-                            class="px-4 py-2 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/50 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 text-sm font-semibold flex items-center justify-center gap-2 whitespace-nowrap transition-colors">
-                            <i class="fa-solid fa-file-pdf"></i> Export PDF
-                        </button>
+                            class="px-4 py-2 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/50 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 text-sm font-semibold flex items-center justify-center gap-2 whitespace-nowrap transition-colors"><i
+                                class="fa-solid fa-file-pdf"></i> Export PDF</button>
                     </div>
                     <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
                         <select id="filter-month-perm"
@@ -315,11 +302,9 @@
                                 </tr>
                             </thead>
                             <tbody id="permohonan-list" class="text-sm divide-y divide-gray-50 dark:divide-slate-700">
-                                <!-- Injected by JS -->
                             </tbody>
                         </table>
                     </div>
-                    <!-- Pagination Controls -->
                     <div
                         class="flex items-center justify-between px-4 py-3 border-t border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/80">
                         <span class="text-xs text-gray-500 dark:text-slate-400" id="perm-page-info">Halaman 1</span>
@@ -335,6 +320,7 @@
                 </div>
             </div>
 
+            <!-- Kas Tab -->
             <div id="tab-kas" class="hidden h-full flex-col">
                 <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-4">
                     <div>
@@ -353,16 +339,13 @@
                         </div>
                         <button
                             onclick="document.getElementById('tarik-saldo-info').innerText = formatRp(calculateSaldo()); openModal('modal-tarik-kas');"
-                            class="px-4 py-2 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 text-sm font-semibold rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 shadow-sm transition-all flex items-center gap-2 h-full">
-                            <i class="fa-solid fa-money-bill-wave"></i> Tarik Kas
-                        </button>
+                            class="px-4 py-2 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 text-sm font-semibold rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 shadow-sm transition-all flex items-center gap-2 h-full"><i
+                                class="fa-solid fa-money-bill-wave"></i> Tarik Kas</button>
                     </div>
                 </div>
 
-                <!-- Kas Metrics Summary -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4" id="kas-metrics-summary"></div>
 
-                <!-- Filters for Kas -->
                 <div
                     class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col md:flex-row gap-3 mb-4 transition-colors">
                     <div class="flex-1 relative">
@@ -408,12 +391,9 @@
                                     <th class="p-3 font-semibold text-center">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody id="kas-list" class="text-sm divide-y divide-gray-50 dark:divide-slate-700">
-                                <!-- Injected by JS -->
-                            </tbody>
+                            <tbody id="kas-list" class="text-sm divide-y divide-gray-50 dark:divide-slate-700"></tbody>
                         </table>
                     </div>
-                    <!-- Pagination Controls -->
                     <div
                         class="flex items-center justify-between px-4 py-3 border-t border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/80">
                         <span class="text-xs text-gray-500 dark:text-slate-400" id="kas-page-info">Halaman 1</span>
@@ -428,10 +408,10 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </main>
 
+    <!-- Modal Elements (Copy, Auth, Delete, Edit Kas, Tarik Kas, Tambah Perm, Bayar, Progress) remain the same structure -->
     <!-- MODAL: Salin Data WA -->
     <div id="modal-copy"
         class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
@@ -439,24 +419,21 @@
             class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md p-6 shadow-xl modal-enter border border-gray-100 dark:border-slate-700 transition-colors">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2"><i
-                        class="fa-solid fa-copy text-blue-500"></i> Salin Format Data</h3>
-                <button onclick="closeModal('modal-copy')"
+                        class="fa-solid fa-copy text-blue-500"></i> Salin Format Data</h3><button
+                    onclick="closeModal('modal-copy')"
                     class="text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-white"><i
                         class="fa-solid fa-xmark"></i></button>
             </div>
             <p class="text-xs text-gray-500 dark:text-slate-400 mb-3">Teks di bawah ini sudah tersusun rapi. Klik tombol
-                <b>Salin Teks</b> untuk meng-copy ke clipboard.
-            </p>
+                <b>Salin Teks</b> untuk meng-copy ke clipboard.</p>
             <textarea id="copy-textarea"
                 class="w-full h-48 p-3 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4 resize-none"
                 readonly></textarea>
-            <div class="flex justify-end gap-2">
-                <button onclick="closeModal('modal-copy')"
-                    class="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600">Tutup</button>
-                <button onclick="executeCopy()"
+            <div class="flex justify-end gap-2"><button onclick="closeModal('modal-copy')"
+                    class="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600">Tutup</button><button
+                    onclick="executeCopy()"
                     class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 flex items-center gap-2"><i
-                        class="fa-solid fa-copy"></i> Salin Teks</button>
-            </div>
+                        class="fa-solid fa-copy"></i> Salin Teks</button></div>
         </div>
     </div>
 
@@ -472,10 +449,9 @@
             <input type="password" id="auth-password" placeholder="Password Admin..."
                 class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg mb-2 focus:outline-none focus:border-red-500">
             <p id="auth-error" class="text-xs text-red-500 hidden mb-4">Password salah! Silakan coba lagi.</p>
-            <div class="flex justify-end gap-2 mt-4">
-                <button onclick="closeModal('modal-auth')"
-                    class="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600">Batal</button>
-                <button onclick="verifyAuth()"
+            <div class="flex justify-end gap-2 mt-4"><button onclick="closeModal('modal-auth')"
+                    class="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600">Batal</button><button
+                    onclick="verifyAuth()"
                     class="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700">Lanjutkan</button>
             </div>
         </div>
@@ -488,18 +464,15 @@
             class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-xl modal-enter border border-gray-100 dark:border-slate-700 text-center">
             <div
                 class="w-12 h-12 bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4 text-xl">
-                <i class="fa-solid fa-trash-can"></i>
-            </div>
+                <i class="fa-solid fa-trash-can"></i></div>
             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Konfirmasi Hapus</h3>
             <p class="text-sm text-gray-600 dark:text-slate-400 mb-6">Yakin ingin menghapus data ini? Tindakan ini tidak
                 dapat dibatalkan.</p>
-            <div class="flex justify-center gap-3">
-                <button onclick="closeModal('modal-delete')"
-                    class="px-5 py-2 text-sm font-semibold text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600">Batal</button>
-                <button id="btn-confirm-delete"
+            <div class="flex justify-center gap-3"><button onclick="closeModal('modal-delete')"
+                    class="px-5 py-2 text-sm font-semibold text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600">Batal</button><button
+                    id="btn-confirm-delete"
                     class="px-5 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700">Ya,
-                    Hapus</button>
-            </div>
+                    Hapus</button></div>
         </div>
     </div>
 
@@ -509,32 +482,27 @@
         <div
             class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md p-6 shadow-xl modal-enter border border-gray-100 dark:border-slate-700">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Edit Transaksi Kas</h3>
-                <button onclick="closeModal('modal-edit-kas')"
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Edit Transaksi Kas</h3><button
+                    onclick="closeModal('modal-edit-kas')"
                     class="text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-white"><i
                         class="fa-solid fa-xmark"></i></button>
             </div>
             <input type="hidden" id="edit-kas-id">
             <div class="space-y-3">
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Keterangan
-                        Transaksi</label>
-                    <input type="text" id="edit-kas-ket"
+                <div><label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Keterangan
+                        Transaksi</label><input type="text" id="edit-kas-ket"
                         class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:border-blue-500">
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Nominal (Rp)</label>
-                    <input type="number" id="edit-kas-nominal"
+                <div><label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Nominal
+                        (Rp)</label><input type="number" id="edit-kas-nominal"
                         class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:border-blue-500">
                 </div>
             </div>
-            <div class="flex justify-end gap-2 mt-6">
-                <button onclick="closeModal('modal-edit-kas')"
-                    class="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600">Batal</button>
-                <button onclick="saveEditKas()"
+            <div class="flex justify-end gap-2 mt-6"><button onclick="closeModal('modal-edit-kas')"
+                    class="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600">Batal</button><button
+                    onclick="saveEditKas()"
                     class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700">Simpan
-                    Perubahan</button>
-            </div>
+                    Perubahan</button></div>
         </div>
     </div>
 
@@ -545,36 +513,30 @@
             class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-xl modal-enter border border-gray-100 dark:border-slate-700">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2"><i
-                        class="fa-solid fa-money-bill-transfer text-red-500"></i> Penarikan Kas</h3>
-                <button onclick="closeModal('modal-tarik-kas')"
+                        class="fa-solid fa-money-bill-transfer text-red-500"></i> Penarikan Kas</h3><button
+                    onclick="closeModal('modal-tarik-kas')"
                     class="text-gray-400 dark:text-slate-400 hover:text-white"><i
                         class="fa-solid fa-xmark"></i></button>
             </div>
             <div
                 class="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg border border-blue-100 dark:border-blue-800/50 mb-4 flex justify-between items-center">
-                <span class="text-xs font-medium text-blue-800 dark:text-blue-300">Saldo Tersedia:</span>
-                <span class="text-sm font-bold text-blue-900 dark:text-blue-200" id="tarik-saldo-info">Rp 0</span>
-            </div>
+                <span class="text-xs font-medium text-blue-800 dark:text-blue-300">Saldo Tersedia:</span><span
+                    class="text-sm font-bold text-blue-900 dark:text-blue-200" id="tarik-saldo-info">Rp 0</span></div>
             <div class="space-y-3 mb-4">
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Nominal (Rp)
-                        *</label>
-                    <input type="number" id="tarik-nominal"
+                <div><label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Nominal (Rp)
+                        *</label><input type="number" id="tarik-nominal"
                         class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:border-red-400">
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Keterangan *</label>
-                    <input type="text" id="tarik-ket"
+                <div><label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Keterangan
+                        *</label><input type="text" id="tarik-ket"
                         class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:border-red-400">
                 </div>
             </div>
-            <div class="flex justify-end gap-2">
-                <button onclick="closeModal('modal-tarik-kas')"
-                    class="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200">Batal</button>
-                <button onclick="prosesTarikKas()"
+            <div class="flex justify-end gap-2"><button onclick="closeModal('modal-tarik-kas')"
+                    class="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200">Batal</button><button
+                    onclick="prosesTarikKas()"
                     class="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 shadow-sm"><i
-                        class="fa-solid fa-check"></i> Tarik</button>
-            </div>
+                        class="fa-solid fa-check"></i> Tarik</button></div>
         </div>
     </div>
 
@@ -586,74 +548,63 @@
             <div
                 class="flex justify-between items-center mb-5 sticky top-0 bg-white dark:bg-slate-800 pb-2 border-b border-gray-100 dark:border-slate-700 z-10">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white" id="modal-title-perm">Tambah Permohonan Baru
-                </h3>
-                <button onclick="closeModal('modal-add')"
+                </h3><button onclick="closeModal('modal-add')"
                     class="text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-white"><i
                         class="fa-solid fa-xmark"></i></button>
             </div>
-
             <input type="hidden" id="edit-perm-id">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Kiri -->
                 <div class="space-y-3">
-                    <div><label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">NIK *</label>
-                        <input type="number" id="add-nik"
+                    <div><label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">NIK
+                            *</label><input type="number" id="add-nik"
                             class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:border-blue-500">
                     </div>
-
                     <div><label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Nama Pelanggan
-                            *</label>
-                        <input type="text" id="add-nama"
+                            *</label><input type="text" id="add-nama"
                             class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:border-blue-500">
                     </div>
-
                     <div><label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Alamat Lengkap
-                            *</label>
-                        <textarea id="add-alamat" rows="2"
+                            *</label><textarea id="add-alamat" rows="2"
                             class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:border-blue-500"></textarea>
                     </div>
-
                     <div class="grid grid-cols-2 gap-2">
                         <div><label
-                                class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Kelurahan</label>
-                            <input type="text" id="add-kel"
+                                class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Kelurahan</label><input
+                                type="text" id="add-kel"
                                 class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg">
                         </div>
                         <div><label
-                                class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Kecamatan</label>
-                            <input type="text" id="add-kec"
+                                class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Kecamatan</label><input
+                                type="text" id="add-kec"
                                 class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg">
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div><label
-                                class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Kabupaten</label>
-                            <input type="text" id="add-kab"
+                                class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Kabupaten</label><input
+                                type="text" id="add-kab"
                                 class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg">
                         </div>
                         <div><label
-                                class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Provinsi</label>
-                            <input type="text" id="add-prov"
+                                class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Provinsi</label><input
+                                type="text" id="add-prov"
                                 class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg">
                         </div>
                     </div>
                 </div>
-
-                <!-- Kanan -->
                 <div class="space-y-3">
                     <div class="grid grid-cols-2 gap-2">
                         <div><label
-                                class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Latitude</label>
-                            <input type="text" id="add-lat"
+                                class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Latitude</label><input
+                                type="text" id="add-lat"
                                 class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg">
                         </div>
                         <div><label
-                                class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Longitude</label>
-                            <input type="text" id="add-long"
+                                class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Longitude</label><input
+                                type="text" id="add-long"
                                 class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg">
                         </div>
                     </div>
-
                     <div><label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Jenis Layanan
                             *</label>
                         <select id="add-jenis"
@@ -662,31 +613,26 @@
                             <option value="Tambah Daya">Tambah Daya (PD)</option>
                         </select>
                     </div>
-
                     <div class="grid grid-cols-2 gap-2">
                         <div><label
-                                class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Tarif</label>
-                            <input type="text" id="add-tarif"
+                                class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Tarif</label><input
+                                type="text" id="add-tarif"
                                 class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg">
                         </div>
                         <div><label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Daya (VA)
-                                *</label>
-                            <input type="number" id="add-daya"
+                                *</label><input type="number" id="add-daya"
                                 class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:border-blue-500">
                         </div>
                     </div>
-
                     <div><label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Biaya Total
-                            (Rp) *</label>
-                        <input type="number" id="add-biaya"
+                            (Rp) *</label><input type="number" id="add-biaya"
                             class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:border-blue-500">
                     </div>
-
-                    <div><label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Unit</label>
-                        <input type="text" value="ULP Agats" disabled
+                    <div><label
+                            class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Unit</label><input
+                            type="text" value="ULP Agats" disabled
                             class="w-full px-3 py-2 text-sm border border-gray-200 dark:border-slate-700 rounded-lg bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-500 cursor-not-allowed">
                     </div>
-
                     <div id="edit-progress-container"
                         class="hidden mt-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-lg">
                         <label class="block text-xs font-bold text-red-700 dark:text-red-400 mb-1"><i
@@ -707,14 +653,12 @@
                     </div>
                 </div>
             </div>
-
-            <div class="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-100 dark:border-slate-700">
-                <button onclick="closeModal('modal-add')"
-                    class="px-5 py-2.5 text-sm font-semibold text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">Batal</button>
-                <button onclick="simpanPermohonan()"
+            <div class="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-100 dark:border-slate-700"><button
+                    onclick="closeModal('modal-add')"
+                    class="px-5 py-2.5 text-sm font-semibold text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">Batal</button><button
+                    onclick="simpanPermohonan()"
                     class="px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">Simpan
-                    Permohonan</button>
-            </div>
+                    Permohonan</button></div>
         </div>
     </div>
 
@@ -727,12 +671,10 @@
             <div id="bayar-info"
                 class="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg border border-blue-100 dark:border-blue-800/50 mb-4 text-sm text-blue-900 dark:text-blue-200">
             </div>
-
             <label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Nominal pelanggan (Rp)
                 *</label>
             <input type="number" id="bayar-nominal"
                 class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:border-blue-500 mb-3">
-
             <label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Link Bukti Pembayaran
                 (GDrive) *</label>
             <a href="https://drive.google.com/drive/folders/1ZvSI7s7YO0xLfcvjALuJMSq9hHbSz5qQ?usp=drive_link"
@@ -741,14 +683,11 @@
                     class="fa-solid fa-folder-open"></i> Buka Folder GDrive</a>
             <input type="text" id="bayar-link" placeholder="Paste link disini..."
                 class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:border-blue-500 mb-4">
-
-            <div class="flex justify-end gap-2">
-                <button onclick="closeModal('modal-bayar')"
-                    class="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200">Batal</button>
-                <button onclick="prosesBayar()"
+            <div class="flex justify-end gap-2"><button onclick="closeModal('modal-bayar')"
+                    class="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200">Batal</button><button
+                    onclick="prosesBayar()"
                     class="px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">Terima
-                    & Lunas</button>
-            </div>
+                    & Lunas</button></div>
         </div>
     </div>
 
@@ -764,7 +703,6 @@
                     class="text-gray-400 dark:text-slate-400 hover:text-white"><i
                         class="fa-solid fa-xmark"></i></button>
             </div>
-
             <div
                 class="bg-gray-50 dark:bg-slate-700/50 border border-gray-100 dark:border-slate-600 rounded-xl p-4 mb-5">
                 <p class="text-[10px] font-bold text-gray-400 dark:text-slate-400 uppercase tracking-wider mb-1">Detail
@@ -772,7 +710,6 @@
                 <h4 class="text-base font-bold text-gray-900 dark:text-white" id="prog-nama">Nama</h4>
                 <p class="text-xs text-gray-600 dark:text-slate-300" id="prog-layanan">Layanan</p>
             </div>
-
             <div class="relative pl-3 max-h-[50vh] overflow-y-auto pr-2" id="timeline-container">
                 <!-- Injected by JS -->
             </div>
@@ -785,7 +722,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyACIdEtcYrflNf6xZ3Fmm4So2EXbkBlKiE",
@@ -828,22 +765,32 @@
         const itemsPerPage = 10, ADMIN_PASS = 'Agats@123';
         let authAction = null;
 
+        // Flags to control initial load filter settings
+        let isInitialLoadPerm = true;
+        let isInitialLoadKas = true;
+
+        // Automatically set filters to Current Month upon page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const currentMonth = new Date().getMonth().toString();
+            document.getElementById('filter-month-perm').value = currentMonth;
+            document.getElementById('filter-month').value = currentMonth;
+        });
+
         function setupRealtimeListeners() {
             if (!currentUser) return;
-            const permQuery = query(permCol, orderBy('date', 'desc'), limit(100));
-            const kasQuery = query(kasCol, orderBy('date', 'desc'), limit(100));
-
-            onSnapshot(permQuery, (snapshot) => {
+            // Menarik seluruh data permohonan dari Firebase (tanpa batasan limit)
+            onSnapshot(permCol, (snapshot) => {
                 state.permohonan = [];
                 snapshot.forEach(doc => state.permohonan.push({ ...doc.data(), id: doc.id }));
                 if (!document.getElementById('tab-permohonan').classList.contains('hidden')) { populateYearFilterPerm(); renderPermohonanList(); }
                 if (!document.getElementById('tab-dashboard').classList.contains('hidden')) renderDashboard();
             }, (error) => console.error("Error fetching permohonan:", error));
 
-            onSnapshot(kasQuery, (snapshot) => {
+            // Menarik seluruh data kas dari Firebase (tanpa batasan limit)
+            onSnapshot(kasCol, (snapshot) => {
                 state.kas = [];
                 snapshot.forEach(doc => state.kas.push({ ...doc.data(), id: doc.id }));
-                if (!document.getElementById('tab-kas').classList.contains('hidden')) renderKasList();
+                if (!document.getElementById('tab-kas').classList.contains('hidden')) { populateYearFilter(); renderKasList(); }
                 if (!document.getElementById('tab-dashboard').classList.contains('hidden')) renderDashboard();
             }, (error) => console.error("Error fetching kas:", error));
         }
@@ -877,7 +824,6 @@
         function toggleDarkMode() {
             document.documentElement.classList.toggle('dark');
             const isDark = document.documentElement.classList.contains('dark');
-
             const iconDesk = document.getElementById('dark-mode-icon');
             const textDesk = document.getElementById('dark-mode-text');
             if (iconDesk) iconDesk.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
@@ -894,6 +840,7 @@
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
             document.getElementById(`tab-${tabId}`).classList.add(tabId === 'dashboard' ? 'block' : 'flex');
             document.getElementById(`nav-${tabId}`).classList.add('sidebar-active');
+
             if (tabId === 'dashboard') renderDashboard();
             if (tabId === 'permohonan') { populateYearFilterPerm(); renderPermohonanList(); }
             if (tabId === 'kas') { populateYearFilter(); renderKasList(); }
@@ -901,7 +848,16 @@
 
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-        function goToPermohonanFilter(statusVal, stepVal) { switchTab('permohonan'); document.getElementById('filter-status-permohonan').value = statusVal; document.getElementById('filter-step-permohonan').value = stepVal; renderPermohonanList(); }
+
+        function goToPermohonanFilter(statusVal, stepVal) {
+            switchTab('permohonan');
+            document.getElementById('filter-status-permohonan').value = statusVal;
+            document.getElementById('filter-step-permohonan').value = stepVal;
+            // Reset filter waktu ke "All" agar antrean tertunggak bulan lalu juga terlihat
+            document.getElementById('filter-month-perm').value = 'All';
+            document.getElementById('filter-year-perm').value = 'All';
+            renderPermohonanList();
+        }
 
         function requestAuth(actionType, id) { authAction = { type: actionType, id: id }; document.getElementById('auth-password').value = ''; document.getElementById('auth-error').classList.add('hidden'); openModal('modal-auth'); }
         function verifyAuth() { if (document.getElementById('auth-password').value === ADMIN_PASS) { closeModal('modal-auth'); executeAuthAction(); } else { document.getElementById('auth-error').classList.remove('hidden'); } }
@@ -995,10 +951,21 @@
 
         function populateYearFilterPerm() {
             const years = new Set(state.permohonan.map(p => new Date(p.date).getFullYear()));
+            const currentYear = new Date().getFullYear();
+            years.add(currentYear); // Pastikan tahun ini tersedia
             const select = document.getElementById('filter-year-perm');
             if (!select) return;
+
+            const prevValue = select.value;
             select.innerHTML = '<option value="All">Semua Tahun</option>';
             Array.from(years).sort().reverse().forEach(y => select.innerHTML += `<option value="${y}">${y}</option>`);
+
+            if (isInitialLoadPerm) {
+                select.value = currentYear.toString();
+                isInitialLoadPerm = false;
+            } else {
+                select.value = prevValue ? prevValue : currentYear.toString();
+            }
         }
 
         function getFilteredPermohonan() {
@@ -1100,12 +1067,11 @@
 
         function exportPermohonanPDF() {
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('landscape'); // Menggunakan orientasi horizontal agar tabel muat
+            const doc = new jsPDF('landscape');
             const filteredData = getFilteredPermohonan();
 
             if (filteredData.length === 0) return showToast('Tidak ada data untuk diexport!', 'error');
 
-            // Header Laporan
             doc.setFontSize(14);
             doc.text('Laporan Rekap Permohonan ULP Agats', 14, 15);
             doc.setFontSize(10);
@@ -1115,7 +1081,6 @@
             const tableColumn = ["No", "ID Permohonan", "Tgl Input", "Nama Pelanggan", "Layanan", "Daya", "Status Terakhir", "Total Biaya"];
             const tableRows = [];
 
-            // Memasukkan data ke baris tabel
             filteredData.forEach((p, index) => {
                 const rowData = [
                     index + 1,
@@ -1130,18 +1095,16 @@
                 tableRows.push(rowData);
             });
 
-            // Generate Tabel
             doc.autoTable({
                 head: [tableColumn],
                 body: tableRows,
                 startY: 28,
                 theme: 'grid',
                 styles: { fontSize: 8 },
-                headStyles: { fillColor: [37, 99, 235] }, // Warna biru Tailwind
-                alternateRowStyles: { fillColor: [248, 250, 252] } // Warna abu muda
+                headStyles: { fillColor: [37, 99, 235] },
+                alternateRowStyles: { fillColor: [248, 250, 252] }
             });
 
-            // Menyimpan file PDF
             doc.save(`Laporan_Permohonan_${new Date().getTime()}.pdf`);
             showToast('Laporan PDF berhasil diunduh!', 'success');
         }
@@ -1222,10 +1185,7 @@
             closeModal('modal-bayar');
             showToast('Pembayaran dicatat ke database!');
 
-            // Otomatis cetak kuitansi setelah 1 detik
-            setTimeout(() => {
-                cetakStruk(p.id);
-            }, 1000);
+            setTimeout(() => { cetakStruk(p.id); }, 1000);
         }
 
         function cetakStruk(id) {
@@ -1234,13 +1194,11 @@
             if (!p) return;
 
             const trx = state.kas.find(k => k.refId === id && k.tipe === 'Pemasukan');
-            const doc = new jsPDF('l', 'mm', 'a5'); // Format A5 Landscape (Setengah Halaman A4)
+            const doc = new jsPDF('l', 'mm', 'a5');
 
-            // Garis Tepi (Border)
             doc.setLineWidth(0.5);
             doc.rect(5, 5, 200, 138);
 
-            // Kop Surat
             doc.setFontSize(16);
             doc.setFont('helvetica', 'bold');
             doc.text('KUITANSI PEMBAYARAN', 105, 15, { align: 'center' });
@@ -1250,52 +1208,29 @@
             doc.setLineWidth(0.2);
             doc.line(10, 26, 200, 26);
 
-            // Konten Kuitansi
             doc.setFontSize(10);
             doc.setFont('helvetica', 'normal');
 
             const startY = 35;
-            const lh = 8; // Tinggi spasi baris
+            const lh = 8;
 
-            doc.text('Telah terima dari', 15, startY);
-            doc.text(':', 55, startY);
-            doc.setFont('helvetica', 'bold');
-            doc.text(p.nama, 60, startY);
-            doc.setFont('helvetica', 'normal');
+            doc.text('Telah terima dari', 15, startY); doc.text(':', 55, startY);
+            doc.setFont('helvetica', 'bold'); doc.text(p.nama, 60, startY); doc.setFont('helvetica', 'normal');
+            doc.text('ID Permohonan', 15, startY + lh); doc.text(':', 55, startY + lh); doc.text(p.id, 60, startY + lh);
+            doc.text('Jenis Layanan', 15, startY + lh * 2); doc.text(':', 55, startY + lh * 2); doc.text(`${p.jenis} - ${p.daya} VA`, 60, startY + lh * 2);
+            doc.text('Tanggal Pembayaran', 15, startY + lh * 3); doc.text(':', 55, startY + lh * 3); doc.text(trx ? formatDate(trx.date) : formatDate(p.date), 60, startY + lh * 3);
+            doc.text('Untuk Pembayaran', 15, startY + lh * 4); doc.text(':', 55, startY + lh * 4); doc.text(`Biaya ${p.jenis} a.n ${p.nama}`, 60, startY + lh * 4);
 
-            doc.text('ID Permohonan', 15, startY + lh);
-            doc.text(':', 55, startY + lh);
-            doc.text(p.id, 60, startY + lh);
-
-            doc.text('Jenis Layanan', 15, startY + lh * 2);
-            doc.text(':', 55, startY + lh * 2);
-            doc.text(`${p.jenis} - ${p.daya} VA`, 60, startY + lh * 2);
-
-            doc.text('Tanggal Pembayaran', 15, startY + lh * 3);
-            doc.text(':', 55, startY + lh * 3);
-            doc.text(trx ? formatDate(trx.date) : formatDate(p.date), 60, startY + lh * 3);
-
-            doc.text('Untuk Pembayaran', 15, startY + lh * 4);
-            doc.text(':', 55, startY + lh * 4);
-            doc.text(`Biaya ${p.jenis} a.n ${p.nama}`, 60, startY + lh * 4);
-
-            // Kotak Jumlah Uang
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.setFillColor(240, 240, 240);
+            doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setFillColor(240, 240, 240);
             doc.rect(15, startY + lh * 6, 80, 12, 'F');
             doc.text(formatRp(p.biaya), 55, startY + lh * 6 + 8, { align: 'center' });
 
-            // Bagian Tanda Tangan
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(10); doc.setFont('helvetica', 'normal');
             const ttdY = startY + lh * 6;
             doc.text('Agats, ' + (trx ? formatDate(trx.date).split(',')[0] : formatDate(p.date).split(',')[0]), 160, ttdY, { align: 'center' });
             doc.text('Petugas Loket', 160, ttdY + 5, { align: 'center' });
-
             doc.text('(_________________________)', 160, ttdY + 25, { align: 'center' });
 
-            // Simpan / Download PDF
             doc.save(`Kuitansi_${p.id}_${p.nama.replace(/\s+/g, '_')}.pdf`);
             showToast('Kuitansi PDF berhasil dibuat!', 'success');
         }
@@ -1429,8 +1364,21 @@
 
         function populateYearFilter() {
             const years = new Set(state.kas.map(k => new Date(k.date).getFullYear()));
-            const select = document.getElementById('filter-year'); select.innerHTML = '<option value="All">Semua Tahun</option>';
+            const currentYear = new Date().getFullYear();
+            years.add(currentYear);
+            const select = document.getElementById('filter-year');
+            if (!select) return;
+
+            const prevValue = select.value;
+            select.innerHTML = '<option value="All">Semua Tahun</option>';
             Array.from(years).sort().reverse().forEach(y => select.innerHTML += `<option value="${y}">${y}</option>`);
+
+            if (isInitialLoadKas) {
+                select.value = currentYear.toString();
+                isInitialLoadKas = false;
+            } else {
+                select.value = prevValue ? prevValue : currentYear.toString();
+            }
         }
 
         function renderKasList() {
@@ -1481,40 +1429,18 @@
             showToast('Kas diperbarui permanen!'); closeModal('modal-edit-kas');
         }
 
-        window.handleLogin = handleLogin;
-        window.toggleDarkMode = toggleDarkMode;
-        window.switchTab = switchTab;
-        window.openModal = openModal;
-        window.closeModal = closeModal;
-        window.goToPermohonanFilter = goToPermohonanFilter;
-        window.requestAuth = requestAuth;
-        window.verifyAuth = verifyAuth;
-        window.executeAuthAction = executeAuthAction;
-        window.deletePermohonan = deletePermohonan;
-        window.deleteKas = deleteKas;
-        window.renderDashboard = renderDashboard;
-        window.renderPermohonanList = renderPermohonanList;
-        window.changePagePerm = changePagePerm;
-        window.exportPermohonanPDF = exportPermohonanPDF;
-        window.bukaFormTambahPerm = bukaFormTambahPerm;
-        window.openEditPermohonan = openEditPermohonan;
-        window.simpanPermohonan = simpanPermohonan;
-        window.openModalCopy = openModalCopy;
-        window.executeCopy = executeCopy;
-        window.bukaFormBayar = bukaFormBayar;
-        window.prosesBayar = prosesBayar;
-        window.cetakStruk = cetakStruk;
-        window.openProgressModal = openProgressModal;
-        window.updateProgressStepWithCost = updateProgressStepWithCost;
-        window.updateProgressStepBerkas = updateProgressStepBerkas;
-        window.updateProgressStep = updateProgressStep;
-        window.prosesTarikKas = prosesTarikKas;
-        window.renderKasList = renderKasList;
-        window.changePageKas = changePageKas;
-        window.openEditKas = openEditKas;
-        window.saveEditKas = saveEditKas;
-        window.formatRp = formatRp;
-        window.calculateSaldo = calculateSaldo;
+        window.handleLogin = handleLogin; window.toggleDarkMode = toggleDarkMode; window.switchTab = switchTab;
+        window.openModal = openModal; window.closeModal = closeModal; window.goToPermohonanFilter = goToPermohonanFilter;
+        window.requestAuth = requestAuth; window.verifyAuth = verifyAuth; window.executeAuthAction = executeAuthAction;
+        window.deletePermohonan = deletePermohonan; window.deleteKas = deleteKas; window.renderDashboard = renderDashboard;
+        window.renderPermohonanList = renderPermohonanList; window.changePagePerm = changePagePerm; window.exportPermohonanPDF = exportPermohonanPDF;
+        window.bukaFormTambahPerm = bukaFormTambahPerm; window.openEditPermohonan = openEditPermohonan; window.simpanPermohonan = simpanPermohonan;
+        window.openModalCopy = openModalCopy; window.executeCopy = executeCopy; window.bukaFormBayar = bukaFormBayar;
+        window.prosesBayar = prosesBayar; window.cetakStruk = cetakStruk; window.openProgressModal = openProgressModal;
+        window.updateProgressStepWithCost = updateProgressStepWithCost; window.updateProgressStepBerkas = updateProgressStepBerkas;
+        window.updateProgressStep = updateProgressStep; window.prosesTarikKas = prosesTarikKas; window.renderKasList = renderKasList;
+        window.changePageKas = changePageKas; window.openEditKas = openEditKas; window.saveEditKas = saveEditKas;
+        window.formatRp = formatRp; window.calculateSaldo = calculateSaldo;
 
         window.onload = () => switchTab('dashboard');
     </script>
