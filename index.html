@@ -177,6 +177,10 @@
                 class="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-all focus:outline-none">
                 <i id="dark-mode-icon" class="fa-solid fa-sun"></i> <span id="dark-mode-text">Light Mode</span>
             </button>
+            <button onclick="handleLogout()"
+                class="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/40 transition-all focus:outline-none">
+                <i class="fa-solid fa-power-off"></i> Logout
+            </button>
         </div>
     </aside>
 
@@ -765,6 +769,7 @@
             const errorText = document.getElementById('login-error');
 
             if (user === 'admin' && pass === 'admin') {
+                localStorage.setItem('admin_logged_in', 'true'); // Menyimpan sesi login
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('login-username').value = '';
                 document.getElementById('login-password').value = '';
@@ -773,6 +778,11 @@
             } else {
                 errorText.classList.remove('hidden');
             }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('admin_logged_in'); // Menghapus sesi login
+            window.location.reload(); // Memuat ulang halaman
         }
 
         const PROGRESS_STEPS = ["Pembayaran BP di PPOB", "Pemasangan di Lokasi", "Penginputan FSO", "Peremajaan di AP2T", "Pembayaran NIDI & SLO", "Upload Berkas NIDI & SLO"];
@@ -786,6 +796,11 @@
         let isInitialLoadKas = true;
 
         window.addEventListener('DOMContentLoaded', () => {
+            // Cek apakah admin sudah login sebelumnya
+            if (localStorage.getItem('admin_logged_in') === 'true') {
+                document.getElementById('login-screen').classList.add('hidden');
+            }
+
             const currentMonth = new Date().getMonth().toString();
             document.getElementById('filter-month-perm').value = currentMonth;
             document.getElementById('filter-month').value = currentMonth;
@@ -1299,7 +1314,7 @@
             const container = document.getElementById('timeline-container'); container.innerHTML = '';
 
             for (let i = 0; i < PROGRESS_STEPS.length; i++) {
-                // Skip rendering NIDI steps if bypass is active
+                // Skip rendering NIDI steps if bypass is active from creation
                 if (p.tanpaNidi && (i === 4 || i === 5)) {
                     continue;
                 }
@@ -1339,17 +1354,26 @@
                                      <input type="text" id="prog-link-${i}" class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg mb-3">`;
                         }
 
+                        if (i === 4 && p.jenis === 'Tambah Daya') {
+                            html += `
+                                <div class="flex items-center gap-2 mb-3">
+                                    <input type="checkbox" id="prog-bypass-nidi-${p.id}" class="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600" onchange="toggleBypassNidi(this, '${p.id}', ${i})">
+                                    <label for="prog-bypass-nidi-${p.id}" class="text-xs font-medium text-blue-800 dark:text-blue-300 cursor-pointer">Selesaikan tanpa NIDI/SLO (Khusus Tambah Daya)</label>
+                                </div>
+                            `;
+                        }
+
                         if (i === 0 || i === 1 || i === 4) {
-                            html += `<label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Biaya Pengeluaran Kas (Rp) *</label><input type="number" id="prog-cost-${i}" class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg mb-3">`;
+                            html += `<div id="prog-cost-container-${i}"><label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Biaya Pengeluaran Kas (Rp) *</label><input type="number" id="prog-cost-${i}" class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg mb-3"></div>`;
                         }
 
                         let fnCall = '';
                         if (i === 0) fnCall = `updateProgressStepWithCost('${p.id}', 0, 'Biaya Pembayaran BP di PPOB')`;
                         if (i === 1) fnCall = `updateProgressStepWithCost('${p.id}', 1, 'Biaya Pemasangan di Lokasi')`;
-                        if (i === 4) fnCall = `updateProgressStepWithCost('${p.id}', 4, 'Biaya Pembayaran NIDI & SLO')`;
+                        if (i === 4) fnCall = `handleNidiStep('${p.id}', 4)`;
                         if (i === 5) fnCall = `updateProgressStepBerkas('${p.id}', 5)`;
 
-                        html += `<button onclick="${fnCall}" class="w-full px-3 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700"><i class="fa-solid fa-check"></i> Selesaikan</button></div>`;
+                        html += `<button id="prog-btn-${i}" onclick="${fnCall}" class="w-full px-3 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700"><i class="fa-solid fa-check"></i> Selesaikan</button></div>`;
 
                     } else {
                         html += `<button onclick="updateProgressStep('${p.id}', ${i})" class="mt-2 px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-md hover:bg-blue-700">Selesaikan Tahap Ini</button>`;
@@ -1359,6 +1383,36 @@
             }
             openModal('modal-progress');
         }
+
+        window.toggleBypassNidi = function (checkbox, id, stepIndex) {
+            const costContainer = document.getElementById(`prog-cost-container-${stepIndex}`);
+            const btn = document.getElementById(`prog-btn-${stepIndex}`);
+            if (checkbox.checked) {
+                if (costContainer) costContainer.classList.add('hidden');
+                if (btn) btn.innerHTML = '<i class="fa-solid fa-forward-step"></i> Selesaikan Permohonan';
+            } else {
+                if (costContainer) costContainer.classList.remove('hidden');
+                if (btn) btn.innerHTML = '<i class="fa-solid fa-check"></i> Selesaikan';
+            }
+        };
+
+        window.handleNidiStep = async function (id, stepIndex) {
+            if (!currentUser) return showToast("Sistem belum siap. Coba lagi.", "error");
+            const p = state.permohonan.find(x => x.id === id); if (!p || p.step !== stepIndex) return;
+
+            const bypassCheckbox = document.getElementById(`prog-bypass-nidi-${id}`);
+            const isBypass = bypassCheckbox && bypassCheckbox.checked;
+
+            if (isBypass) {
+                // Instantly complete without kas or upload
+                await setDoc(doc(db, 'permohonan', id), { step: 6, status: 'Selesai', tanpaNidi: true }, { merge: true });
+                showToast('Permohonan selesai tanpa NIDI/SLO!');
+                openProgressModal(id);
+            } else {
+                // Proceed with normal cost flow
+                updateProgressStepWithCost(id, 4, 'Biaya Pembayaran NIDI & SLO');
+            }
+        };
 
         async function updateProgressStepWithCost(id, stepIndex, costName) {
             if (!currentUser) return showToast("Sistem belum siap. Coba lagi.", "error");
@@ -1511,6 +1565,7 @@
         window.updateProgressStep = updateProgressStep; window.prosesTarikKas = prosesTarikKas; window.renderKasList = renderKasList;
         window.changePageKas = changePageKas; window.openEditKas = openEditKas; window.saveEditKas = saveEditKas;
         window.formatRp = formatRp; window.calculateSaldo = calculateSaldo; window.toggleMobileMenu = toggleMobileMenu;
+        window.handleLogout = handleLogout;
 
         window.onload = () => switchTab('dashboard');
     </script>
