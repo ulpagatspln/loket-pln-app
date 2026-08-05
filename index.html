@@ -631,6 +631,16 @@
                                 class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:border-blue-500">
                         </div>
                     </div>
+
+                    <div id="container-tanpa-nidi"
+                        class="hidden flex items-center gap-2 mt-1 mb-2 bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg border border-blue-100 dark:border-blue-800/50">
+                        <input type="checkbox" id="add-tanpa-nidi"
+                            class="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600">
+                        <label for="add-tanpa-nidi"
+                            class="text-xs font-medium text-blue-800 dark:text-blue-300 cursor-pointer">Tambah Daya 1
+                            Fasa Tanpa NIDI/SLO</label>
+                    </div>
+
                     <div><label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Biaya Total
                             (Rp) *</label><input type="number" id="add-biaya"
                             class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:border-blue-500">
@@ -779,6 +789,20 @@
             const currentMonth = new Date().getMonth().toString();
             document.getElementById('filter-month-perm').value = currentMonth;
             document.getElementById('filter-month').value = currentMonth;
+
+            // Listener untuk memunculkan checkbox tanpa nidi
+            document.getElementById('add-jenis').addEventListener('change', function () {
+                const isTambahDaya = this.value === 'Tambah Daya';
+                const containerTanpaNidi = document.getElementById('container-tanpa-nidi');
+                if (isTambahDaya) {
+                    containerTanpaNidi.classList.remove('hidden');
+                    containerTanpaNidi.classList.add('flex');
+                } else {
+                    containerTanpaNidi.classList.add('hidden');
+                    containerTanpaNidi.classList.remove('flex');
+                    document.getElementById('add-tanpa-nidi').checked = false;
+                }
+            });
         });
 
         function setupRealtimeListeners() {
@@ -1055,6 +1079,7 @@
                 if (trxNIDI) infoPengerjaanHtml += `<div class="text-[10px] text-red-600 dark:text-red-400 font-medium mt-1"><i class="fa-solid fa-file-signature w-3 text-center mr-0.5"></i> NIDI/SLO: <b>${formatRp(trxNIDI.nominal)}</b></div>`;
 
                 if (!p.noAgenda && !p.namaPemasang && !trxPPOB) infoPengerjaanHtml = `<span class="text-xs text-gray-400 dark:text-slate-500 italic">Belum ada info</span>`;
+                if (p.tanpaNidi) infoPengerjaanHtml += `<div class="text-[10px] text-blue-600 dark:text-blue-400 font-bold mt-1 bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded inline-block">Tanpa NIDI/SLO</div>`;
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-gray-50/50 dark:hover:bg-slate-700/50 transition-colors">
@@ -1125,6 +1150,11 @@
 
         function bukaFormTambahPerm() {
             ['edit-perm-id', 'add-nik', 'add-nama', 'add-alamat', 'add-kel', 'add-kec', 'add-kab', 'add-prov', 'add-lat', 'add-long', 'add-tarif', 'add-daya', 'add-biaya'].forEach(el => document.getElementById(el).value = '');
+            document.getElementById('add-jenis').value = 'Pasang Baru';
+            document.getElementById('add-tanpa-nidi').checked = false;
+            document.getElementById('container-tanpa-nidi').classList.add('hidden');
+            document.getElementById('container-tanpa-nidi').classList.remove('flex');
+
             document.getElementById('modal-title-perm').innerText = 'Tambah Permohonan Baru';
             document.getElementById('edit-progress-container').classList.add('hidden');
             openModal('modal-add');
@@ -1139,6 +1169,17 @@
                 const el = document.getElementById(`add-${key === 'kelurahan' ? 'kel' : key === 'kecamatan' ? 'kec' : key === 'kabupaten' ? 'kab' : key === 'provinsi' ? 'prov' : key}`);
                 if (el) el.value = p[key] || '';
             });
+
+            document.getElementById('add-tanpa-nidi').checked = p.tanpaNidi || false;
+            const containerTanpaNidi = document.getElementById('container-tanpa-nidi');
+            if (p.jenis === 'Tambah Daya') {
+                containerTanpaNidi.classList.remove('hidden');
+                containerTanpaNidi.classList.add('flex');
+            } else {
+                containerTanpaNidi.classList.add('hidden');
+                containerTanpaNidi.classList.remove('flex');
+            }
+
             document.getElementById('edit-progress-container').classList.remove('hidden');
             document.getElementById('edit-progress').value = p.status === 'Selesai' ? 'selesai' : (p.status === 'Lunas' ? `step-${p.step}` : 'menunggu');
             openModal('modal-add');
@@ -1147,15 +1188,18 @@
         async function simpanPermohonan() {
             if (!currentUser) return showToast('Menunggu koneksi database...', 'error');
             const id = document.getElementById('edit-perm-id').value, nik = document.getElementById('add-nik').value, nama = document.getElementById('add-nama').value, alamat = document.getElementById('add-alamat').value, daya = document.getElementById('add-daya').value, biaya = document.getElementById('add-biaya').value;
+            const jenisLayanan = document.getElementById('add-jenis').value;
+            const tanpaNidi = jenisLayanan === 'Tambah Daya' ? document.getElementById('add-tanpa-nidi').checked : false;
+
             if (!nik || !nama || !alamat || !daya || !biaya) return showToast('Kolom wajib (*) harus diisi!', 'error');
 
             if (id) {
                 let updates = {
-                    nik: nik, nama: nama, alamat: alamat, jenis: document.getElementById('add-jenis').value,
+                    nik: nik, nama: nama, alamat: alamat, jenis: jenisLayanan,
                     kelurahan: document.getElementById('add-kel').value, kecamatan: document.getElementById('add-kec').value,
                     kabupaten: document.getElementById('add-kab').value, provinsi: document.getElementById('add-prov').value,
                     lat: document.getElementById('add-lat').value, long: document.getElementById('add-long').value,
-                    tarif: document.getElementById('add-tarif').value, daya: daya, biaya: parseInt(biaya)
+                    tarif: document.getElementById('add-tarif').value, daya: daya, biaya: parseInt(biaya), tanpaNidi: tanpaNidi
                 };
                 const progVal = document.getElementById('edit-progress').value;
                 if (progVal === 'menunggu') { updates.status = 'Menunggu Pembayaran'; updates.step = 0; } else if (progVal === 'selesai') { updates.status = 'Selesai'; updates.step = 6; } else if (progVal.startsWith('step-')) { updates.status = 'Lunas'; updates.step = parseInt(progVal.split('-')[1]); }
@@ -1164,7 +1208,7 @@
                 showToast('Data diperbarui secara permanen!');
             } else {
                 const newId = generateId('REQ');
-                const newData = { id: newId, nik, nama, alamat, jenis: document.getElementById('add-jenis').value, daya, biaya: parseInt(biaya), kelurahan: document.getElementById('add-kel').value, kecamatan: document.getElementById('add-kec').value, kabupaten: document.getElementById('add-kab').value, provinsi: document.getElementById('add-prov').value, lat: document.getElementById('add-lat').value, long: document.getElementById('add-long').value, tarif: document.getElementById('add-tarif').value, status: 'Menunggu Pembayaran', date: new Date().toISOString(), step: 0 };
+                const newData = { id: newId, nik, nama, alamat, jenis: jenisLayanan, daya, biaya: parseInt(biaya), kelurahan: document.getElementById('add-kel').value, kecamatan: document.getElementById('add-kec').value, kabupaten: document.getElementById('add-kab').value, provinsi: document.getElementById('add-prov').value, lat: document.getElementById('add-lat').value, long: document.getElementById('add-long').value, tarif: document.getElementById('add-tarif').value, status: 'Menunggu Pembayaran', date: new Date().toISOString(), step: 0, tanpaNidi: tanpaNidi };
 
                 await setDoc(doc(db, 'permohonan', newId), newData);
                 showToast('Permohonan ditambahkan ke database!');
@@ -1255,6 +1299,11 @@
             const container = document.getElementById('timeline-container'); container.innerHTML = '';
 
             for (let i = 0; i < PROGRESS_STEPS.length; i++) {
+                // Skip rendering NIDI steps if bypass is active
+                if (p.tanpaNidi && (i === 4 || i === 5)) {
+                    continue;
+                }
+
                 const isCompleted = p.step > i || p.status === 'Selesai', isActive = p.step === i && p.status !== 'Selesai';
                 let iconClass = isCompleted ? 'bg-green-50 dark:bg-green-900/30 border-green-500 text-green-500' : (isActive ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-500 text-blue-600 dark:text-blue-400' : 'bg-gray-50 dark:bg-slate-700/50 border-gray-300 dark:border-slate-600 text-gray-400 dark:text-slate-500');
                 let textClass = isCompleted ? 'text-gray-900 dark:text-white font-bold' : (isActive ? 'text-blue-700 dark:text-blue-400 font-bold' : 'text-gray-500 dark:text-slate-400');
@@ -1355,6 +1404,13 @@
             const p = state.permohonan.find(x => x.id === id);
             if (p && p.step === stepIndex) {
                 let updates = { step: p.step + 1 };
+
+                // If bypassing NIDI, completing step 3 means it's fully done
+                if (p.tanpaNidi && updates.step === 4) {
+                    updates.step = 6;
+                    updates.status = 'Selesai';
+                }
+
                 if (updates.step >= PROGRESS_STEPS.length) updates.status = 'Selesai';
                 if (agendaInput) updates.noAgenda = agendaInput;
                 if (pemasangInput) updates.namaPemasang = pemasangInput;
