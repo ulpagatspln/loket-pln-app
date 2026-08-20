@@ -12,7 +12,7 @@
             theme: {
                 extend: {
                     colors: {
-                        slate: {850: '#152033'}
+                        slate: { 850: '#152033' }
                     }
                 }
             }
@@ -226,7 +226,7 @@
             </div>
 
             <!-- Permohonan Tab -->
-            <div id="tab-permohonan" class="hidden h-full flex-col">
+            <div id="tab-permohonan" class="hidden flex-col">
                 <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-4">
                     <div>
                         <h2 class="text-xl font-bold text-gray-900 dark:text-white">Permohonan & Loket</h2>
@@ -302,7 +302,7 @@
                 </div>
 
                 <div
-                    class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden flex-1 transition-colors">
+                    class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden transition-colors">
                     <div class="overflow-x-auto min-h-[300px]">
                         <table class="w-full text-left border-collapse min-w-[800px]">
                             <thead>
@@ -337,26 +337,31 @@
             </div>
 
             <!-- Kas Tab -->
-            <div id="tab-kas" class="hidden h-full flex-col">
+            <div id="tab-kas" class="hidden flex-col">
                 <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-4">
                     <div>
                         <h2 class="text-xl font-bold text-gray-900 dark:text-white">Buku Kas Loket</h2>
                         <p class="text-sm text-gray-500 dark:text-slate-400">Riwayat transaksi keuangan dan penarikan
                         </p>
                     </div>
-                    <div class="flex items-center gap-3 w-full md:w-auto">
+                    <div class="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
                         <div
-                            class="bg-blue-50 dark:bg-blue-900/30 px-4 py-2 rounded-lg border border-blue-100 dark:border-blue-800/50 text-right flex-1 md:flex-none">
+                            class="bg-blue-50 dark:bg-blue-900/30 px-4 py-2 rounded-lg border border-blue-100 dark:border-blue-800/50 text-right w-full sm:w-auto">
                             <p
                                 class="text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider mb-0.5">
                                 Saldo Kas Laci</p>
                             <h3 class="text-lg font-bold text-blue-900 dark:text-blue-200 leading-none"
                                 id="saldo-laci-display">Rp 0</h3>
                         </div>
-                        <button
-                            onclick="document.getElementById('tarik-saldo-info').innerText = formatRp(calculateSaldo()); openModal('modal-tarik-kas');"
-                            class="px-4 py-2 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 text-sm font-semibold rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 shadow-sm transition-all flex items-center justify-center gap-2 h-full"><i
-                                class="fa-solid fa-money-bill-wave"></i> Tarik Kas</button>
+                        <div class="flex gap-2 w-full sm:w-auto">
+                            <button onclick="bukaFormTambahKas()"
+                                class="px-4 py-2 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800/50 text-green-600 dark:text-green-400 text-sm font-semibold rounded-lg hover:bg-green-100 dark:hover:bg-green-900/50 shadow-sm transition-all flex items-center justify-center gap-2 flex-1 sm:flex-none"><i
+                                    class="fa-solid fa-plus"></i> Tambah</button>
+                            <button
+                                onclick="document.getElementById('tarik-saldo-info').innerText = formatRp(calculateSaldo()); openModal('modal-tarik-kas');"
+                                class="px-4 py-2 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 text-sm font-semibold rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 shadow-sm transition-all flex items-center justify-center gap-2 flex-1 sm:flex-none"><i
+                                    class="fa-solid fa-money-bill-wave"></i> Tarik</button>
+                        </div>
                     </div>
                 </div>
 
@@ -394,7 +399,7 @@
                 </div>
 
                 <div
-                    class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden flex-1 transition-colors">
+                    class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden transition-colors">
                     <div class="overflow-x-auto min-h-[300px]">
                         <table class="w-full text-left border-collapse min-w-[600px]">
                             <thead>
@@ -518,6 +523,38 @@
                     onclick="saveEditKas()"
                     class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700">Simpan
                     Perubahan</button></div>
+        </div>
+    </div>
+
+    <!-- MODAL: Tambah Saldo Kas -->
+    <div id="modal-tambah-kas"
+        class="fixed inset-0 bg-black/60 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div
+            class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-xl modal-enter border border-gray-100 dark:border-slate-700">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2"><i
+                        class="fa-solid fa-hand-holding-dollar text-green-500"></i> Tambah Saldo</h3><button
+                    onclick="closeModal('modal-tambah-kas')"
+                    class="text-gray-400 dark:text-slate-400 hover:text-white"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-xs text-gray-500 dark:text-slate-400 mb-4">Gunakan ini untuk menambah pemasukan manual ke
+                laci kas (misal: tambahan kembalian, modal awal).</p>
+            <div class="space-y-3 mb-4">
+                <div><label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Nominal (Rp)
+                        *</label><input type="number" id="tambah-kas-nominal"
+                        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:border-green-400">
+                </div>
+                <div><label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Keterangan
+                        *</label><input type="text" id="tambah-kas-ket" placeholder="Contoh: Tambahan modal laci"
+                        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:border-green-400">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2"><button onclick="closeModal('modal-tambah-kas')"
+                    class="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200">Batal</button><button
+                    onclick="prosesTambahKas()"
+                    class="px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 shadow-sm"><i
+                        class="fa-solid fa-check"></i> Simpan Pemasukan</button></div>
         </div>
     </div>
 
@@ -735,9 +772,9 @@
     <div id="toast-container" class="fixed bottom-5 right-5 z-[100] flex flex-col gap-2 pointer-events-none"></div>
 
     <script type="module">
-        import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import {getAuth, signInAnonymously} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import {getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyACIdEtcYrflNf6xZ3Fmm4So2EXbkBlKiE",
@@ -775,7 +812,7 @@
 
         const PROGRESS_STEPS = ["Pembayaran BP di PPOB", "Pemasangan di Lokasi", "Penginputan FSO", "Peremajaan di AP2T", "Pembayaran NIDI & SLO", "Upload Berkas NIDI & SLO"];
 
-        const state = {permohonan: [], kas: []};
+        const state = { permohonan: [], kas: [] };
         let tempBayarId = null, totalKas = 0, currentPagePerm = 1, currentPageKas = 1;
         const itemsPerPage = 10, ADMIN_PASS = 'Agats@123';
         let authAction = null;
@@ -795,15 +832,15 @@
             if (!currentUser) return;
             onSnapshot(permCol, (snapshot) => {
                 state.permohonan = [];
-                snapshot.forEach(doc => state.permohonan.push({...doc.data(), id: doc.id}));
-                if (!document.getElementById('tab-permohonan').classList.contains('hidden')) {populateYearFilterPerm(); renderPermohonanList();}
+                snapshot.forEach(doc => state.permohonan.push({ ...doc.data(), id: doc.id }));
+                if (!document.getElementById('tab-permohonan').classList.contains('hidden')) { populateYearFilterPerm(); renderPermohonanList(); }
                 if (!document.getElementById('tab-dashboard').classList.contains('hidden')) renderDashboard();
             }, (error) => console.error("Error fetching permohonan:", error));
 
             onSnapshot(kasCol, (snapshot) => {
                 state.kas = [];
-                snapshot.forEach(doc => state.kas.push({...doc.data(), id: doc.id}));
-                if (!document.getElementById('tab-kas').classList.contains('hidden')) {populateYearFilter(); renderKasList();}
+                snapshot.forEach(doc => state.kas.push({ ...doc.data(), id: doc.id }));
+                if (!document.getElementById('tab-kas').classList.contains('hidden')) { populateYearFilter(); renderKasList(); }
                 if (!document.getElementById('tab-dashboard').classList.contains('hidden')) renderDashboard();
             }, (error) => console.error("Error fetching kas:", error));
         }
@@ -822,7 +859,7 @@
 
         const formatRp = (angka) => 'Rp ' + Number(angka).toLocaleString('id-ID');
         const calculateSaldo = () => state.kas.reduce((sum, trx) => trx.tipe === 'Pemasukan' ? sum + trx.nominal : sum - trx.nominal, 0);
-        const formatDate = (isoString) => new Date(isoString).toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'});
+        const formatDate = (isoString) => new Date(isoString).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         const generateId = (prefix) => prefix + '-' + Math.floor(1000 + Math.random() * 9000);
 
         function showToast(msg, type = 'success') {
@@ -831,7 +868,7 @@
             toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle text-green-400' : 'fa-circle-exclamation'}"></i> ${msg}`;
             document.getElementById('toast-container').appendChild(toast);
             setTimeout(() => toast.classList.remove('translate-y-10', 'opacity-0'), 10);
-            setTimeout(() => {toast.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => toast.remove(), 300);}, 3000);
+            setTimeout(() => { toast.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3000);
         }
 
         function toggleDarkMode() {
@@ -870,12 +907,12 @@
             }
 
             if (tabId === 'dashboard') renderDashboard();
-            if (tabId === 'permohonan') {populateYearFilterPerm(); renderPermohonanList();}
-            if (tabId === 'kas') {populateYearFilter(); renderKasList();}
+            if (tabId === 'permohonan') { populateYearFilterPerm(); renderPermohonanList(); }
+            if (tabId === 'kas') { populateYearFilter(); renderKasList(); }
         }
 
-        function openModal(id) {document.getElementById(id).classList.remove('hidden');}
-        function closeModal(id) {document.getElementById(id).classList.add('hidden');}
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
         function goToPermohonanFilter(statusVal, stepVal) {
             switchTab('permohonan');
@@ -886,23 +923,23 @@
             renderPermohonanList();
         }
 
-        function requestAuth(actionType, id) {authAction = {type: actionType, id: id}; document.getElementById('auth-password').value = ''; document.getElementById('auth-error').classList.add('hidden'); openModal('modal-auth');}
-        function verifyAuth() {if (document.getElementById('auth-password').value === ADMIN_PASS) {closeModal('modal-auth'); executeAuthAction();} else {document.getElementById('auth-error').classList.remove('hidden');} }
+        function requestAuth(actionType, id) { authAction = { type: actionType, id: id }; document.getElementById('auth-password').value = ''; document.getElementById('auth-error').classList.add('hidden'); openModal('modal-auth'); }
+        function verifyAuth() { if (document.getElementById('auth-password').value === ADMIN_PASS) { closeModal('modal-auth'); executeAuthAction(); } else { document.getElementById('auth-error').classList.remove('hidden'); } }
 
         function executeAuthAction() {
             if (!authAction) return;
-            const {type, id} = authAction;
-            if (type === 'del_perm') {document.getElementById('btn-confirm-delete').onclick = () => deletePermohonan(id); openModal('modal-delete');}
-            else if (type === 'edit_perm') {openEditPermohonan(id);}
-            else if (type === 'del_kas') {document.getElementById('btn-confirm-delete').onclick = () => deleteKas(id); openModal('modal-delete');}
-            else if (type === 'edit_kas') {openEditKas(id);}
+            const { type, id } = authAction;
+            if (type === 'del_perm') { document.getElementById('btn-confirm-delete').onclick = () => deletePermohonan(id); openModal('modal-delete'); }
+            else if (type === 'edit_perm') { openEditPermohonan(id); }
+            else if (type === 'del_kas') { document.getElementById('btn-confirm-delete').onclick = () => deleteKas(id); openModal('modal-delete'); }
+            else if (type === 'edit_kas') { openEditKas(id); }
         }
 
         async function deletePermohonan(id) {
             if (!currentUser) return showToast("Sistem belum siap. Coba lagi.", "error");
             await deleteDoc(doc(db, 'permohonan', id));
             const kasToDelete = state.kas.filter(k => k.refId === id);
-            for (const k of kasToDelete) {await deleteDoc(doc(db, 'kas', k.id));}
+            for (const k of kasToDelete) { await deleteDoc(doc(db, 'kas', k.id)); }
             closeModal('modal-delete'); showToast('Data dihapus permanen!');
         }
 
@@ -1090,10 +1127,10 @@
                 `;
             });
         }
-        function changePagePerm(delta) {currentPagePerm += delta; renderPermohonanList();}
+        function changePagePerm(delta) { currentPagePerm += delta; renderPermohonanList(); }
 
         function exportPermohonanPDF() {
-            const {jsPDF} = window.jspdf;
+            const { jsPDF } = window.jspdf;
             const doc = new jsPDF('landscape');
             const filteredData = getFilteredPermohonan();
 
@@ -1127,9 +1164,9 @@
                 body: tableRows,
                 startY: 28,
                 theme: 'grid',
-                styles: {fontSize: 8},
-                headStyles: {fillColor: [37, 99, 235]},
-                alternateRowStyles: {fillColor: [248, 250, 252]}
+                styles: { fontSize: 8 },
+                headStyles: { fillColor: [37, 99, 235] },
+                alternateRowStyles: { fillColor: [248, 250, 252] }
             });
 
             doc.save(`Laporan_Permohonan_${new Date().getTime()}.pdf`);
@@ -1176,9 +1213,9 @@
                 const oldStep = p.status === 'Selesai' ? 6 : (p.status === 'Lunas' ? p.step : -1);
                 let newStep = oldStep;
 
-                if (progVal === 'menunggu') {updates.status = 'Menunggu Pembayaran'; updates.step = 0; newStep = -1;}
-                else if (progVal === 'selesai') {updates.status = 'Selesai'; updates.step = 6; newStep = 6;}
-                else if (progVal.startsWith('step-')) {updates.status = 'Lunas'; updates.step = parseInt(progVal.split('-')[1]); newStep = updates.step;}
+                if (progVal === 'menunggu') { updates.status = 'Menunggu Pembayaran'; updates.step = 0; newStep = -1; }
+                else if (progVal === 'selesai') { updates.status = 'Selesai'; updates.step = 6; newStep = 6; }
+                else if (progVal.startsWith('step-')) { updates.status = 'Lunas'; updates.step = parseInt(progVal.split('-')[1]); newStep = updates.step; }
 
                 // LOGIKA AUTO-DELETE KAS SAAT ROLLBACK
                 if (newStep < oldStep) {
@@ -1203,11 +1240,11 @@
                     }
                 }
 
-                await setDoc(doc(db, 'permohonan', id), updates, {merge: true});
+                await setDoc(doc(db, 'permohonan', id), updates, { merge: true });
                 showToast('Data & Progres diperbarui!');
             } else {
                 const newId = generateId('REQ');
-                const newData = {id: newId, nik, nama, alamat, jenis: document.getElementById('add-jenis').value, daya, biaya: parseInt(biaya), kelurahan: document.getElementById('add-kel').value, kecamatan: document.getElementById('add-kec').value, kabupaten: document.getElementById('add-kab').value, provinsi: document.getElementById('add-prov').value, lat: document.getElementById('add-lat').value, long: document.getElementById('add-long').value, tarif: document.getElementById('add-tarif').value, status: 'Menunggu Pembayaran', date: new Date().toISOString(), step: 0};
+                const newData = { id: newId, nik, nama, alamat, jenis: document.getElementById('add-jenis').value, daya, biaya: parseInt(biaya), kelurahan: document.getElementById('add-kel').value, kecamatan: document.getElementById('add-kec').value, kabupaten: document.getElementById('add-kab').value, provinsi: document.getElementById('add-prov').value, lat: document.getElementById('add-lat').value, long: document.getElementById('add-long').value, tarif: document.getElementById('add-tarif').value, status: 'Menunggu Pembayaran', date: new Date().toISOString(), step: 0 };
 
                 await setDoc(doc(db, 'permohonan', newId), newData);
                 showToast('Permohonan ditambahkan ke database!');
@@ -1221,7 +1258,7 @@
             document.getElementById('copy-textarea').value = `Nama : ${p.nama}\nNIK : ${p.nik || '-'}\nAlamat : ${p.alamat || '-'}\nKelurahan : ${p.kelurahan || '-'}\nKecamatan : ${p.kecamatan || '-'}\nKabupaten : ${p.kabupaten || '-'}\nPropinsi : ${p.provinsi || '-'}\nTarif : ${p.tarif || '-'}\nDaya : ${p.daya || '-'}VA\nTitik koordinat : ${p.lat || '-'} ${p.long || '-'}\nUnit : ULP Agats`;
             openModal('modal-copy');
         }
-        function executeCopy() {const tx = document.getElementById('copy-textarea'); tx.select(); document.execCommand('copy'); showToast('Teks disalin!'); closeModal('modal-copy');}
+        function executeCopy() { const tx = document.getElementById('copy-textarea'); tx.select(); document.execCommand('copy'); showToast('Teks disalin!'); closeModal('modal-copy'); }
 
         function bukaFormBayar(id) {
             const p = state.permohonan.find(x => x.id === id); tempBayarId = id;
@@ -1235,18 +1272,18 @@
             const nom = parseInt(document.getElementById('bayar-nominal').value), link = document.getElementById('bayar-link').value, p = state.permohonan.find(x => x.id === tempBayarId);
             if (nom < p.biaya) return showToast('Nominal kurang!', 'error'); if (!link.trim()) return showToast('Masukkan link GDrive!', 'error');
 
-            await setDoc(doc(db, 'permohonan', p.id), {status: 'Lunas', step: 0}, {merge: true});
+            await setDoc(doc(db, 'permohonan', p.id), { status: 'Lunas', step: 0 }, { merge: true });
             const kId = generateId('K');
-            await setDoc(doc(db, 'kas', kId), {id: kId, date: new Date().toISOString(), ket: `Pembayaran ${p.jenis} - ID: ${p.id}`, tipe: 'Pemasukan', nominal: nom, refId: p.id, link: link});
+            await setDoc(doc(db, 'kas', kId), { id: kId, date: new Date().toISOString(), ket: `Pembayaran ${p.jenis} - ID: ${p.id}`, tipe: 'Pemasukan', nominal: nom, refId: p.id, link: link });
 
             closeModal('modal-bayar');
             showToast('Pembayaran dicatat ke database!');
 
-            setTimeout(() => {cetakStruk(p.id);}, 1000);
+            setTimeout(() => { cetakStruk(p.id); }, 1000);
         }
 
         function cetakStruk(id) {
-            const {jsPDF} = window.jspdf;
+            const { jsPDF } = window.jspdf;
             const p = state.permohonan.find(x => x.id === id);
             if (!p) return;
 
@@ -1258,9 +1295,9 @@
 
             doc.setFontSize(16);
             doc.setFont('helvetica', 'bold');
-            doc.text('KUITANSI PEMBAYARAN', 105, 15, {align: 'center'});
+            doc.text('KUITANSI PEMBAYARAN', 105, 15, { align: 'center' });
             doc.setFontSize(12);
-            doc.text('LOKET PLN ULP AGATS', 105, 22, {align: 'center'});
+            doc.text('LOKET PLN ULP AGATS', 105, 22, { align: 'center' });
 
             doc.setLineWidth(0.2);
             doc.line(10, 26, 200, 26);
@@ -1280,13 +1317,13 @@
 
             doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setFillColor(240, 240, 240);
             doc.rect(15, startY + lh * 6, 80, 12, 'F');
-            doc.text(formatRp(p.biaya), 55, startY + lh * 6 + 8, {align: 'center'});
+            doc.text(formatRp(p.biaya), 55, startY + lh * 6 + 8, { align: 'center' });
 
             doc.setFontSize(10); doc.setFont('helvetica', 'normal');
             const ttdY = startY + lh * 6;
-            doc.text('Agats, ' + (trx ? formatDate(trx.date).split(',')[0] : formatDate(p.date).split(',')[0]), 160, ttdY, {align: 'center'});
-            doc.text('Petugas Loket', 160, ttdY + 5, {align: 'center'});
-            doc.text('(_________________________)', 160, ttdY + 25, {align: 'center'});
+            doc.text('Agats, ' + (trx ? formatDate(trx.date).split(',')[0] : formatDate(p.date).split(',')[0]), 160, ttdY, { align: 'center' });
+            doc.text('Petugas Loket', 160, ttdY + 5, { align: 'center' });
+            doc.text('(_________________________)', 160, ttdY + 25, { align: 'center' });
 
             doc.save(`Kuitansi_${p.id}_${p.nama.replace(/\s+/g, '_')}.pdf`);
             showToast('Kuitansi PDF berhasil dibuat!', 'success');
@@ -1367,14 +1404,14 @@
             }
 
             let agendaInput = '', pemasangInput = '';
-            if (stepIndex === 0) {agendaInput = document.getElementById(`prog-agenda-${stepIndex}`).value; if (!agendaInput.trim()) return showToast('Masukkan Nomor Agenda!', 'error');}
-            if (stepIndex === 1) {pemasangInput = document.getElementById(`prog-pemasang-${stepIndex}`).value; if (!pemasangInput.trim()) return showToast('Masukkan Nama Pemasang!', 'error');}
+            if (stepIndex === 0) { agendaInput = document.getElementById(`prog-agenda-${stepIndex}`).value; if (!agendaInput.trim()) return showToast('Masukkan Nomor Agenda!', 'error'); }
+            if (stepIndex === 1) { pemasangInput = document.getElementById(`prog-pemasang-${stepIndex}`).value; if (!pemasangInput.trim()) return showToast('Masukkan Nama Pemasang!', 'error'); }
 
             if (!costInput || costInput <= 0) return showToast('Masukkan biaya pengeluaran!', 'error');
             if (calculateSaldo() < parseInt(costInput)) return showToast('Saldo kas tidak mencukupi!', 'error');
 
             const kId = generateId('K');
-            let kasData = {id: kId, date: new Date().toISOString(), ket: `${costName} (${p.id})${stepIndex === 0 ? ` - Agenda: ${agendaInput}` : stepIndex === 1 ? ` - Pemasang: ${pemasangInput}` : ''}`, tipe: 'Pengeluaran', nominal: parseInt(costInput), refId: p.id};
+            let kasData = { id: kId, date: new Date().toISOString(), ket: `${costName} (${p.id})${stepIndex === 0 ? ` - Agenda: ${agendaInput}` : stepIndex === 1 ? ` - Pemasang: ${pemasangInput}` : ''}`, tipe: 'Pengeluaran', nominal: parseInt(costInput), refId: p.id };
             if (linkInput) kasData.link = linkInput;
 
             await setDoc(doc(db, 'kas', kId), kasData);
@@ -1388,7 +1425,7 @@
             const linkInput = document.getElementById(`prog-link-${stepIndex}`).value;
             if (!linkInput.trim()) return showToast('Masukkan link Berkas GDrive!', 'error');
 
-            await setDoc(doc(db, 'permohonan', id), {linkNidiSlo: linkInput, step: stepIndex + 1, status: 'Selesai'}, {merge: true});
+            await setDoc(doc(db, 'permohonan', id), { linkNidiSlo: linkInput, step: stepIndex + 1, status: 'Selesai' }, { merge: true });
             showToast('Seluruh Tahap Selesai!');
             openProgressModal(id);
         }
@@ -1397,12 +1434,12 @@
             if (!currentUser) return;
             const p = state.permohonan.find(x => x.id === id);
             if (p && p.step === stepIndex) {
-                let updates = {step: p.step + 1};
+                let updates = { step: p.step + 1 };
                 if (updates.step >= PROGRESS_STEPS.length) updates.status = 'Selesai';
                 if (agendaInput) updates.noAgenda = agendaInput;
                 if (pemasangInput) updates.namaPemasang = pemasangInput;
 
-                await setDoc(doc(db, 'permohonan', id), updates, {merge: true});
+                await setDoc(doc(db, 'permohonan', id), updates, { merge: true });
                 showToast('Tahap selesai dan disimpan!'); openProgressModal(id);
             }
         }
@@ -1414,9 +1451,26 @@
             if (nominal > calculateSaldo()) return showToast('Saldo tidak cukup!', 'error');
 
             const kId = generateId('TRK');
-            await setDoc(doc(db, 'kas', kId), {id: kId, date: new Date().toISOString(), ket: ket, tipe: 'Penarikan', nominal: nominal});
+            await setDoc(doc(db, 'kas', kId), { id: kId, date: new Date().toISOString(), ket: ket, tipe: 'Penarikan', nominal: nominal });
 
             closeModal('modal-tarik-kas'); showToast('Penarikan sukses dicatat!'); document.getElementById('tarik-nominal').value = ''; document.getElementById('tarik-ket').value = '';
+        }
+
+        function bukaFormTambahKas() {
+            document.getElementById('tambah-kas-nominal').value = '';
+            document.getElementById('tambah-kas-ket').value = '';
+            openModal('modal-tambah-kas');
+        }
+
+        async function prosesTambahKas() {
+            if (!currentUser) return showToast("Sistem belum siap. Coba lagi.", "error");
+            const nominal = parseInt(document.getElementById('tambah-kas-nominal').value), ket = document.getElementById('tambah-kas-ket').value;
+            if (!nominal || nominal <= 0) return showToast('Nominal tidak valid!', 'error'); if (!ket.trim()) return showToast('Keterangan wajib!', 'error');
+
+            const kId = generateId('IN');
+            await setDoc(doc(db, 'kas', kId), { id: kId, date: new Date().toISOString(), ket: ket, tipe: 'Pemasukan', nominal: nominal });
+
+            closeModal('modal-tambah-kas'); showToast('Pemasukan berhasil ditambahkan!');
         }
 
         function populateYearFilter() {
@@ -1440,11 +1494,11 @@
 
         function renderKasList() {
             const search = document.getElementById('search-kas').value.toLowerCase(), fMonth = document.getElementById('filter-month').value, fYear = document.getElementById('filter-year').value;
-            let filtered = state.kas.filter(k => {const d = new Date(k.date); return (k.ket.toLowerCase().includes(search) || k.id.toLowerCase().includes(search)) && (fMonth === 'All' || d.getMonth() === parseInt(fMonth)) && (fYear === 'All' || d.getFullYear() === parseInt(fYear));});
+            let filtered = state.kas.filter(k => { const d = new Date(k.date); return (k.ket.toLowerCase().includes(search) || k.id.toLowerCase().includes(search)) && (fMonth === 'All' || d.getMonth() === parseInt(fMonth)) && (fYear === 'All' || d.getFullYear() === parseInt(fYear)); });
             filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             let kPPOB = 0, kPasang = 0, kNidi = 0;
-            filtered.forEach(k => {if (k.tipe !== 'Pemasukan' && k.tipe !== 'Penarikan') {if (k.ket.includes('PPOB')) kPPOB += k.nominal; else if (k.ket.includes('Pemasangan')) kPasang += k.nominal; else if (k.ket.includes('NIDI')) kNidi += k.nominal;} });
+            filtered.forEach(k => { if (k.tipe !== 'Pemasukan' && k.tipe !== 'Penarikan') { if (k.ket.includes('PPOB')) kPPOB += k.nominal; else if (k.ket.includes('Pemasangan')) kPasang += k.nominal; else if (k.ket.includes('NIDI')) kNidi += k.nominal; } });
 
             document.getElementById('saldo-laci-display').innerText = formatRp(calculateSaldo());
             document.getElementById('kas-metrics-summary').innerHTML = `
@@ -1474,15 +1528,15 @@
                 `;
             });
         }
-        function changePageKas(delta) {currentPageKas += delta; renderKasList();}
-        function openEditKas(id) {const k = state.kas.find(x => x.id === id); if (!k) return; document.getElementById('edit-kas-id').value = k.id; document.getElementById('edit-kas-ket').value = k.ket; document.getElementById('edit-kas-nominal').value = k.nominal; openModal('modal-edit-kas');}
+        function changePageKas(delta) { currentPageKas += delta; renderKasList(); }
+        function openEditKas(id) { const k = state.kas.find(x => x.id === id); if (!k) return; document.getElementById('edit-kas-id').value = k.id; document.getElementById('edit-kas-ket').value = k.ket; document.getElementById('edit-kas-nominal').value = k.nominal; openModal('modal-edit-kas'); }
 
         async function saveEditKas() {
             if (!currentUser) return showToast("Sistem belum siap. Coba lagi.", "error");
             const id = document.getElementById('edit-kas-id').value, ket = document.getElementById('edit-kas-ket').value, nom = parseInt(document.getElementById('edit-kas-nominal').value);
             if (!ket || !nom) return showToast('Isi semua kolom!', 'error');
 
-            await setDoc(doc(db, 'kas', id), {ket: ket, nominal: nom}, {merge: true});
+            await setDoc(doc(db, 'kas', id), { ket: ket, nominal: nom }, { merge: true });
             showToast('Kas diperbarui permanen!'); closeModal('modal-edit-kas');
         }
 
@@ -1495,7 +1549,9 @@
         window.openModalCopy = openModalCopy; window.executeCopy = executeCopy; window.bukaFormBayar = bukaFormBayar;
         window.prosesBayar = prosesBayar; window.cetakStruk = cetakStruk; window.openProgressModal = openProgressModal;
         window.updateProgressStepWithCost = updateProgressStepWithCost; window.updateProgressStepBerkas = updateProgressStepBerkas;
-        window.updateProgressStep = updateProgressStep; window.prosesTarikKas = prosesTarikKas; window.renderKasList = renderKasList;
+        window.updateProgressStep = updateProgressStep; window.prosesTarikKas = prosesTarikKas;
+        window.bukaFormTambahKas = bukaFormTambahKas; window.prosesTambahKas = prosesTambahKas;
+        window.renderKasList = renderKasList;
         window.changePageKas = changePageKas; window.openEditKas = openEditKas; window.saveEditKas = saveEditKas;
         window.formatRp = formatRp; window.calculateSaldo = calculateSaldo;
 
