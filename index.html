@@ -12,7 +12,7 @@
             theme: {
                 extend: {
                     colors: {
-                        slate: { 850: '#152033' }
+                        slate: {850: '#152033'}
                     }
                 }
             }
@@ -79,11 +79,20 @@
                 transform: scale(1);
             }
         }
+
+        /* Transisi khusus untuk sidebar mobile */
+        #sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
     </style>
 </head>
 
 <body
-    class="text-gray-800 dark:text-gray-200 h-screen flex overflow-hidden bg-white dark:bg-slate-900 transition-colors duration-300 w-full relative">
+    class="text-gray-800 dark:text-gray-200 min-h-screen flex overflow-hidden bg-[#f8fafc] dark:bg-slate-900 transition-colors duration-300">
+
+    <!-- Efek Gelap di belakang Sidebar (Hanya untuk Mobile) -->
+    <div id="sidebar-backdrop" onclick="toggleMobileMenu()"
+        class="fixed inset-0 bg-black/50 z-40 hidden md:hidden transition-opacity"></div>
 
     <!-- Halaman Login -->
     <div id="login-screen"
@@ -132,23 +141,25 @@
         </div>
     </div>
 
-    <!-- Overlay Sidebar Mobile -->
-    <div id="sidebar-backdrop" onclick="toggleMobileMenu()"
-        class="fixed inset-0 bg-slate-900/60 z-50 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
-
     <!-- Sidebar -->
     <aside id="sidebar"
-        class="fixed md:relative inset-y-0 left-0 w-64 bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 flex flex-col justify-between z-[60] transform -translate-x-full md:translate-x-0 transition-transform duration-300">
+        class="fixed md:static inset-y-0 left-0 w-64 bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 flex flex-col justify-between z-50 transform -translate-x-full md:translate-x-0 transition-colors duration-300">
         <div>
-            <div class="h-16 flex items-center px-6 border-b border-gray-100 dark:border-slate-700">
-                <div
-                    class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold mr-3 shadow-sm shadow-blue-500/30">
-                    <i class="fa-solid fa-bolt"></i>
+            <div
+                class="h-14 md:h-16 flex items-center justify-between md:justify-start px-6 border-b border-gray-100 dark:border-slate-700">
+                <div class="flex items-center">
+                    <div
+                        class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold mr-3 shadow-sm shadow-blue-500/30">
+                        <i class="fa-solid fa-bolt"></i></div>
+                    <div>
+                        <h1 class="text-sm font-bold text-gray-900 dark:text-white leading-tight">Loket PLN</h1>
+                        <p class="text-[10px] text-gray-500 dark:text-slate-400">ULP Agats</p>
+                    </div>
                 </div>
-                <div>
-                    <h1 class="text-sm font-bold text-gray-900 dark:text-white leading-tight">Loket PLN</h1>
-                    <p class="text-[10px] text-gray-500 dark:text-slate-400">ULP Agats</p>
-                </div>
+                <!-- Tombol silang untuk menutup sidebar di Mobile -->
+                <button onclick="toggleMobileMenu()"
+                    class="md:hidden text-gray-500 dark:text-slate-400 focus:outline-none"><i
+                        class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <nav class="mt-4 flex flex-col gap-1 px-3">
                 <a href="#" onclick="switchTab('dashboard')" id="nav-dashboard"
@@ -177,16 +188,11 @@
                 class="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-all focus:outline-none">
                 <i id="dark-mode-icon" class="fa-solid fa-sun"></i> <span id="dark-mode-text">Light Mode</span>
             </button>
-            <button onclick="handleLogout()"
-                class="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/40 transition-all focus:outline-none">
-                <i class="fa-solid fa-power-off"></i> Logout
-            </button>
         </div>
     </aside>
 
     <!-- Main Content -->
-    <main
-        class="flex-1 flex flex-col h-screen overflow-hidden bg-[#f8fafc] dark:bg-slate-900 transition-colors duration-300 w-full">
+    <main class="flex-1 flex flex-col h-screen overflow-hidden transition-colors duration-300">
         <header
             class="h-14 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between px-4 md:hidden transition-colors duration-300 shrink-0">
             <div class="flex items-center gap-2">
@@ -202,7 +208,8 @@
             </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-4 md:p-6 pb-24 w-full">
+        <!-- Area Konten Utama - Dapat Di-Scroll -->
+        <div class="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 pb-24">
 
             <!-- Dashboard Tab -->
             <div id="tab-dashboard" class="block">
@@ -219,14 +226,14 @@
             </div>
 
             <!-- Permohonan Tab -->
-            <div id="tab-permohonan" class="hidden flex-col">
+            <div id="tab-permohonan" class="hidden h-full flex-col">
                 <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-4">
                     <div>
                         <h2 class="text-xl font-bold text-gray-900 dark:text-white">Permohonan & Loket</h2>
                         <p class="text-sm text-gray-500 dark:text-slate-400">Daftar pelanggan dan proses pembayaran</p>
                     </div>
                     <button onclick="bukaFormTambahPerm()"
-                        class="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 shadow-sm transition-all flex items-center gap-2"><i
+                        class="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 shadow-sm transition-all flex items-center justify-center gap-2 w-full md:w-auto"><i
                             class="fa-solid fa-plus"></i> Tambah Permohonan</button>
                 </div>
 
@@ -295,8 +302,8 @@
                 </div>
 
                 <div
-                    class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden transition-colors">
-                    <div class="overflow-x-auto">
+                    class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden flex-1 transition-colors">
+                    <div class="overflow-x-auto min-h-[300px]">
                         <table class="w-full text-left border-collapse min-w-[800px]">
                             <thead>
                                 <tr
@@ -304,10 +311,10 @@
                                     <th class="p-3 font-semibold">ID</th>
                                     <th class="p-3 font-semibold">Pelanggan</th>
                                     <th class="p-3 font-semibold">Layanan</th>
-                                    <th class="p-3 font-semibold">Info Pengerjaan</th>
+                                    <th class="p-3 font-semibold w-48">Info Pengerjaan</th>
                                     <th class="p-3 font-semibold">Total Biaya</th>
                                     <th class="p-3 font-semibold">Status</th>
-                                    <th class="p-3 font-semibold text-center">Aksi</th>
+                                    <th class="p-3 font-semibold text-center w-28">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody id="permohonan-list" class="text-sm divide-y divide-gray-50 dark:divide-slate-700">
@@ -330,16 +337,16 @@
             </div>
 
             <!-- Kas Tab -->
-            <div id="tab-kas" class="hidden flex-col">
+            <div id="tab-kas" class="hidden h-full flex-col">
                 <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-4">
                     <div>
                         <h2 class="text-xl font-bold text-gray-900 dark:text-white">Buku Kas Loket</h2>
                         <p class="text-sm text-gray-500 dark:text-slate-400">Riwayat transaksi keuangan dan penarikan
                         </p>
                     </div>
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-3 w-full md:w-auto">
                         <div
-                            class="bg-blue-50 dark:bg-blue-900/30 px-4 py-2 rounded-lg border border-blue-100 dark:border-blue-800/50 text-right">
+                            class="bg-blue-50 dark:bg-blue-900/30 px-4 py-2 rounded-lg border border-blue-100 dark:border-blue-800/50 text-right flex-1 md:flex-none">
                             <p
                                 class="text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider mb-0.5">
                                 Saldo Kas Laci</p>
@@ -348,7 +355,7 @@
                         </div>
                         <button
                             onclick="document.getElementById('tarik-saldo-info').innerText = formatRp(calculateSaldo()); openModal('modal-tarik-kas');"
-                            class="px-4 py-2 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 text-sm font-semibold rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 shadow-sm transition-all flex items-center gap-2 h-full"><i
+                            class="px-4 py-2 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 text-sm font-semibold rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 shadow-sm transition-all flex items-center justify-center gap-2 h-full"><i
                                 class="fa-solid fa-money-bill-wave"></i> Tarik Kas</button>
                     </div>
                 </div>
@@ -387,17 +394,17 @@
                 </div>
 
                 <div
-                    class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden transition-colors">
-                    <div class="overflow-x-auto">
+                    class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden flex-1 transition-colors">
+                    <div class="overflow-x-auto min-h-[300px]">
                         <table class="w-full text-left border-collapse min-w-[600px]">
                             <thead>
                                 <tr
                                     class="bg-gray-50 dark:bg-slate-700/50 border-b border-gray-100 dark:border-slate-700 text-[10px] uppercase tracking-wider text-gray-500 dark:text-slate-400">
                                     <th class="p-3 font-semibold">Tanggal</th>
-                                    <th class="p-3 font-semibold">Keterangan</th>
+                                    <th class="p-3 font-semibold w-64">Keterangan</th>
                                     <th class="p-3 font-semibold text-right">Nominal Masuk</th>
                                     <th class="p-3 font-semibold text-right">Nominal Keluar</th>
-                                    <th class="p-3 font-semibold text-center">Aksi</th>
+                                    <th class="p-3 font-semibold text-center w-24">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody id="kas-list" class="text-sm divide-y divide-gray-50 dark:divide-slate-700"></tbody>
@@ -420,11 +427,11 @@
         </div>
     </main>
 
-    <!-- MODAL: Salin Data WA -->
+    <!-- Modal Elements (Salin Data WA) -->
     <div id="modal-copy"
         class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
         <div
-            class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md p-6 shadow-xl modal-enter border border-gray-100 dark:border-slate-700 transition-colors mx-4">
+            class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md p-6 shadow-xl modal-enter border border-gray-100 dark:border-slate-700 transition-colors">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2"><i
                         class="fa-solid fa-copy text-blue-500"></i> Salin Format Data</h3><button
@@ -433,8 +440,7 @@
                         class="fa-solid fa-xmark"></i></button>
             </div>
             <p class="text-xs text-gray-500 dark:text-slate-400 mb-3">Teks di bawah ini sudah tersusun rapi. Klik tombol
-                <b>Salin Teks</b> untuk meng-copy ke clipboard.
-            </p>
+                <b>Salin Teks</b> untuk meng-copy ke clipboard.</p>
             <textarea id="copy-textarea"
                 class="w-full h-48 p-3 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4 resize-none"
                 readonly></textarea>
@@ -450,7 +456,7 @@
     <div id="modal-auth"
         class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
         <div
-            class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-xl modal-enter border border-gray-100 dark:border-slate-700 mx-4">
+            class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-xl modal-enter border border-gray-100 dark:border-slate-700">
             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2"><i
                     class="fa-solid fa-shield-halved text-red-500"></i> Otorisasi Diperlukan</h3>
             <p class="text-sm text-gray-600 dark:text-slate-400 mb-4">Masukkan password admin untuk melakukan tindakan
@@ -470,11 +476,10 @@
     <div id="modal-delete"
         class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
         <div
-            class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-xl modal-enter border border-gray-100 dark:border-slate-700 text-center mx-4">
+            class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-xl modal-enter border border-gray-100 dark:border-slate-700 text-center">
             <div
                 class="w-12 h-12 bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4 text-xl">
-                <i class="fa-solid fa-trash-can"></i>
-            </div>
+                <i class="fa-solid fa-trash-can"></i></div>
             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Konfirmasi Hapus</h3>
             <p class="text-sm text-gray-600 dark:text-slate-400 mb-6">Yakin ingin menghapus data ini? Tindakan ini tidak
                 dapat dibatalkan.</p>
@@ -490,7 +495,7 @@
     <div id="modal-edit-kas"
         class="fixed inset-0 bg-black/60 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm">
         <div
-            class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md p-6 shadow-xl modal-enter border border-gray-100 dark:border-slate-700 mx-4">
+            class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md p-6 shadow-xl modal-enter border border-gray-100 dark:border-slate-700">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white">Edit Transaksi Kas</h3><button
                     onclick="closeModal('modal-edit-kas')"
@@ -520,7 +525,7 @@
     <div id="modal-tarik-kas"
         class="fixed inset-0 bg-black/60 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm">
         <div
-            class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-xl modal-enter border border-gray-100 dark:border-slate-700 mx-4">
+            class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-xl modal-enter border border-gray-100 dark:border-slate-700">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2"><i
                         class="fa-solid fa-money-bill-transfer text-red-500"></i> Penarikan Kas</h3><button
@@ -531,8 +536,7 @@
             <div
                 class="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg border border-blue-100 dark:border-blue-800/50 mb-4 flex justify-between items-center">
                 <span class="text-xs font-medium text-blue-800 dark:text-blue-300">Saldo Tersedia:</span><span
-                    class="text-sm font-bold text-blue-900 dark:text-blue-200" id="tarik-saldo-info">Rp 0</span>
-            </div>
+                    class="text-sm font-bold text-blue-900 dark:text-blue-200" id="tarik-saldo-info">Rp 0</span></div>
             <div class="space-y-3 mb-4">
                 <div><label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Nominal (Rp)
                         *</label><input type="number" id="tarik-nominal"
@@ -553,11 +557,10 @@
 
     <!-- MODAL: Tambah/Edit Permohonan -->
     <div id="modal-add"
-        class="fixed inset-0 bg-black/60 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        class="fixed inset-0 bg-black/60 z-[60] hidden flex items-center justify-center p-4 md:p-6 backdrop-blur-sm overflow-y-auto">
         <div
-            class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-2xl p-6 shadow-xl modal-enter max-h-[90vh] overflow-y-auto border border-gray-100 dark:border-slate-700 mx-4">
-            <div
-                class="flex justify-between items-center mb-5 sticky top-0 bg-white dark:bg-slate-800 pb-2 border-b border-gray-100 dark:border-slate-700 z-10">
+            class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-2xl p-6 shadow-xl modal-enter border border-gray-100 dark:border-slate-700 my-auto">
+            <div class="flex justify-between items-center mb-5">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white" id="modal-title-perm">Tambah Permohonan Baru
                 </h3><button onclick="closeModal('modal-add')"
                     class="text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-white"><i
@@ -635,16 +638,6 @@
                                 class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:border-blue-500">
                         </div>
                     </div>
-
-                    <div id="container-tanpa-nidi"
-                        class="hidden flex items-center gap-2 mt-1 mb-2 bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg border border-blue-100 dark:border-blue-800/50">
-                        <input type="checkbox" id="add-tanpa-nidi"
-                            class="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600">
-                        <label for="add-tanpa-nidi"
-                            class="text-xs font-medium text-blue-800 dark:text-blue-300 cursor-pointer">Tambah Daya 1
-                            Fasa Tanpa NIDI/SLO</label>
-                    </div>
-
                     <div><label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Biaya Total
                             (Rp) *</label><input type="number" id="add-biaya"
                             class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:border-blue-500">
@@ -654,6 +647,7 @@
                             type="text" value="ULP Agats" disabled
                             class="w-full px-3 py-2 text-sm border border-gray-200 dark:border-slate-700 rounded-lg bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-500 cursor-not-allowed">
                     </div>
+
                     <div id="edit-progress-container"
                         class="hidden mt-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-lg">
                         <label class="block text-xs font-bold text-red-700 dark:text-red-400 mb-1"><i
@@ -669,8 +663,8 @@
                             <option value="step-5">Lunas - Belum Upload Berkas (Tahap 6)</option>
                             <option value="selesai">Selesai 100%</option>
                         </select>
-                        <p class="text-[9px] text-red-600 dark:text-red-400 leading-tight">Ubah tahap jika terjadi
-                            kesalahan sistem. Tidak akan menghapus riwayat Buku Kas!</p>
+                        <p class="text-[9px] text-red-600 dark:text-red-400 leading-tight">Catatan: Rollback ke tahap
+                            sebelumnya akan otomatis menghapus riwayat pengeluaran Kas di tahap tersebut.</p>
                     </div>
                 </div>
             </div>
@@ -687,7 +681,7 @@
     <div id="modal-bayar"
         class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
         <div
-            class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-xl modal-enter border border-gray-100 dark:border-slate-700 mx-4">
+            class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-xl modal-enter border border-gray-100 dark:border-slate-700">
             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Proses Pembayaran</h3>
             <div id="bayar-info"
                 class="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg border border-blue-100 dark:border-blue-800/50 mb-4 text-sm text-blue-900 dark:text-blue-200">
@@ -714,9 +708,9 @@
 
     <!-- MODAL: Timeline Progres -->
     <div id="modal-progress"
-        class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 md:p-6 backdrop-blur-sm overflow-y-auto">
         <div
-            class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md p-6 shadow-xl modal-enter border border-gray-100 dark:border-slate-700 mx-4">
+            class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md p-6 shadow-xl modal-enter border border-gray-100 dark:border-slate-700 my-auto">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2"><i
                         class="fa-solid fa-layer-group text-blue-600 dark:text-blue-400"></i> Monitoring Progres</h3>
@@ -741,9 +735,9 @@
     <div id="toast-container" class="fixed bottom-5 right-5 z-[100] flex flex-col gap-2 pointer-events-none"></div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import {getAuth, signInAnonymously} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import {getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyACIdEtcYrflNf6xZ3Fmm4So2EXbkBlKiE",
@@ -769,7 +763,6 @@
             const errorText = document.getElementById('login-error');
 
             if (user === 'admin' && pass === 'admin') {
-                localStorage.setItem('admin_logged_in', 'true'); // Menyimpan sesi login
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('login-username').value = '';
                 document.getElementById('login-password').value = '';
@@ -780,59 +773,37 @@
             }
         }
 
-        function handleLogout() {
-            localStorage.removeItem('admin_logged_in'); // Menghapus sesi login
-            window.location.reload(); // Memuat ulang halaman
-        }
-
         const PROGRESS_STEPS = ["Pembayaran BP di PPOB", "Pemasangan di Lokasi", "Penginputan FSO", "Peremajaan di AP2T", "Pembayaran NIDI & SLO", "Upload Berkas NIDI & SLO"];
 
-        const state = { permohonan: [], kas: [] };
+        const state = {permohonan: [], kas: []};
         let tempBayarId = null, totalKas = 0, currentPagePerm = 1, currentPageKas = 1;
         const itemsPerPage = 10, ADMIN_PASS = 'Agats@123';
         let authAction = null;
 
+        // Flags to control initial load filter settings
         let isInitialLoadPerm = true;
         let isInitialLoadKas = true;
 
+        // Automatically set filters to Current Month upon page load
         window.addEventListener('DOMContentLoaded', () => {
-            // Cek apakah admin sudah login sebelumnya
-            if (localStorage.getItem('admin_logged_in') === 'true') {
-                document.getElementById('login-screen').classList.add('hidden');
-            }
-
             const currentMonth = new Date().getMonth().toString();
             document.getElementById('filter-month-perm').value = currentMonth;
             document.getElementById('filter-month').value = currentMonth;
-
-            // Listener untuk memunculkan checkbox tanpa nidi
-            document.getElementById('add-jenis').addEventListener('change', function () {
-                const isTambahDaya = this.value === 'Tambah Daya';
-                const containerTanpaNidi = document.getElementById('container-tanpa-nidi');
-                if (isTambahDaya) {
-                    containerTanpaNidi.classList.remove('hidden');
-                    containerTanpaNidi.classList.add('flex');
-                } else {
-                    containerTanpaNidi.classList.add('hidden');
-                    containerTanpaNidi.classList.remove('flex');
-                    document.getElementById('add-tanpa-nidi').checked = false;
-                }
-            });
         });
 
         function setupRealtimeListeners() {
             if (!currentUser) return;
             onSnapshot(permCol, (snapshot) => {
                 state.permohonan = [];
-                snapshot.forEach(doc => state.permohonan.push({ ...doc.data(), id: doc.id }));
-                if (!document.getElementById('tab-permohonan').classList.contains('hidden')) { populateYearFilterPerm(); renderPermohonanList(); }
+                snapshot.forEach(doc => state.permohonan.push({...doc.data(), id: doc.id}));
+                if (!document.getElementById('tab-permohonan').classList.contains('hidden')) {populateYearFilterPerm(); renderPermohonanList();}
                 if (!document.getElementById('tab-dashboard').classList.contains('hidden')) renderDashboard();
             }, (error) => console.error("Error fetching permohonan:", error));
 
             onSnapshot(kasCol, (snapshot) => {
                 state.kas = [];
-                snapshot.forEach(doc => state.kas.push({ ...doc.data(), id: doc.id }));
-                if (!document.getElementById('tab-kas').classList.contains('hidden')) { populateYearFilter(); renderKasList(); }
+                snapshot.forEach(doc => state.kas.push({...doc.data(), id: doc.id}));
+                if (!document.getElementById('tab-kas').classList.contains('hidden')) {populateYearFilter(); renderKasList();}
                 if (!document.getElementById('tab-dashboard').classList.contains('hidden')) renderDashboard();
             }, (error) => console.error("Error fetching kas:", error));
         }
@@ -851,7 +822,7 @@
 
         const formatRp = (angka) => 'Rp ' + Number(angka).toLocaleString('id-ID');
         const calculateSaldo = () => state.kas.reduce((sum, trx) => trx.tipe === 'Pemasukan' ? sum + trx.nominal : sum - trx.nominal, 0);
-        const formatDate = (isoString) => new Date(isoString).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const formatDate = (isoString) => new Date(isoString).toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'});
         const generateId = (prefix) => prefix + '-' + Math.floor(1000 + Math.random() * 9000);
 
         function showToast(msg, type = 'success') {
@@ -860,14 +831,7 @@
             toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle text-green-400' : 'fa-circle-exclamation'}"></i> ${msg}`;
             document.getElementById('toast-container').appendChild(toast);
             setTimeout(() => toast.classList.remove('translate-y-10', 'opacity-0'), 10);
-            setTimeout(() => { toast.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3000);
-        }
-
-        function toggleMobileMenu() {
-            const sidebar = document.getElementById('sidebar');
-            const backdrop = document.getElementById('sidebar-backdrop');
-            sidebar.classList.toggle('-translate-x-full');
-            backdrop.classList.toggle('hidden');
+            setTimeout(() => {toast.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => toast.remove(), 300);}, 3000);
         }
 
         function toggleDarkMode() {
@@ -881,6 +845,15 @@
             if (iconMob) iconMob.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
         }
 
+        // Fungsi toggle untuk mobile menu sidebar
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+
+            sidebar.classList.toggle('-translate-x-full');
+            backdrop.classList.toggle('hidden');
+        }
+
         function switchTab(tabId) {
             ['dashboard', 'permohonan', 'kas'].forEach(id => {
                 document.getElementById(`tab-${id}`).classList.add('hidden');
@@ -890,18 +863,19 @@
             document.getElementById(`tab-${tabId}`).classList.add(tabId === 'dashboard' ? 'block' : 'flex');
             document.getElementById(`nav-${tabId}`).classList.add('sidebar-active');
 
+            // Tutup menu otomatis di HP setelah tab diklik
             const sidebar = document.getElementById('sidebar');
             if (!sidebar.classList.contains('-translate-x-full') && window.innerWidth < 768) {
                 toggleMobileMenu();
             }
 
             if (tabId === 'dashboard') renderDashboard();
-            if (tabId === 'permohonan') { populateYearFilterPerm(); renderPermohonanList(); }
-            if (tabId === 'kas') { populateYearFilter(); renderKasList(); }
+            if (tabId === 'permohonan') {populateYearFilterPerm(); renderPermohonanList();}
+            if (tabId === 'kas') {populateYearFilter(); renderKasList();}
         }
 
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        function openModal(id) {document.getElementById(id).classList.remove('hidden');}
+        function closeModal(id) {document.getElementById(id).classList.add('hidden');}
 
         function goToPermohonanFilter(statusVal, stepVal) {
             switchTab('permohonan');
@@ -912,23 +886,23 @@
             renderPermohonanList();
         }
 
-        function requestAuth(actionType, id) { authAction = { type: actionType, id: id }; document.getElementById('auth-password').value = ''; document.getElementById('auth-error').classList.add('hidden'); openModal('modal-auth'); }
-        function verifyAuth() { if (document.getElementById('auth-password').value === ADMIN_PASS) { closeModal('modal-auth'); executeAuthAction(); } else { document.getElementById('auth-error').classList.remove('hidden'); } }
+        function requestAuth(actionType, id) {authAction = {type: actionType, id: id}; document.getElementById('auth-password').value = ''; document.getElementById('auth-error').classList.add('hidden'); openModal('modal-auth');}
+        function verifyAuth() {if (document.getElementById('auth-password').value === ADMIN_PASS) {closeModal('modal-auth'); executeAuthAction();} else {document.getElementById('auth-error').classList.remove('hidden');} }
 
         function executeAuthAction() {
             if (!authAction) return;
-            const { type, id } = authAction;
-            if (type === 'del_perm') { document.getElementById('btn-confirm-delete').onclick = () => deletePermohonan(id); openModal('modal-delete'); }
-            else if (type === 'edit_perm') { openEditPermohonan(id); }
-            else if (type === 'del_kas') { document.getElementById('btn-confirm-delete').onclick = () => deleteKas(id); openModal('modal-delete'); }
-            else if (type === 'edit_kas') { openEditKas(id); }
+            const {type, id} = authAction;
+            if (type === 'del_perm') {document.getElementById('btn-confirm-delete').onclick = () => deletePermohonan(id); openModal('modal-delete');}
+            else if (type === 'edit_perm') {openEditPermohonan(id);}
+            else if (type === 'del_kas') {document.getElementById('btn-confirm-delete').onclick = () => deleteKas(id); openModal('modal-delete');}
+            else if (type === 'edit_kas') {openEditKas(id);}
         }
 
         async function deletePermohonan(id) {
             if (!currentUser) return showToast("Sistem belum siap. Coba lagi.", "error");
             await deleteDoc(doc(db, 'permohonan', id));
             const kasToDelete = state.kas.filter(k => k.refId === id);
-            for (const k of kasToDelete) { await deleteDoc(doc(db, 'kas', k.id)); }
+            for (const k of kasToDelete) {await deleteDoc(doc(db, 'kas', k.id));}
             closeModal('modal-delete'); showToast('Data dihapus permanen!');
         }
 
@@ -1094,7 +1068,6 @@
                 if (trxNIDI) infoPengerjaanHtml += `<div class="text-[10px] text-red-600 dark:text-red-400 font-medium mt-1"><i class="fa-solid fa-file-signature w-3 text-center mr-0.5"></i> NIDI/SLO: <b>${formatRp(trxNIDI.nominal)}</b></div>`;
 
                 if (!p.noAgenda && !p.namaPemasang && !trxPPOB) infoPengerjaanHtml = `<span class="text-xs text-gray-400 dark:text-slate-500 italic">Belum ada info</span>`;
-                if (p.tanpaNidi) infoPengerjaanHtml += `<div class="text-[10px] text-blue-600 dark:text-blue-400 font-bold mt-1 bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded inline-block">Tanpa NIDI/SLO</div>`;
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-gray-50/50 dark:hover:bg-slate-700/50 transition-colors">
@@ -1117,10 +1090,10 @@
                 `;
             });
         }
-        function changePagePerm(delta) { currentPagePerm += delta; renderPermohonanList(); }
+        function changePagePerm(delta) {currentPagePerm += delta; renderPermohonanList();}
 
         function exportPermohonanPDF() {
-            const { jsPDF } = window.jspdf;
+            const {jsPDF} = window.jspdf;
             const doc = new jsPDF('landscape');
             const filteredData = getFilteredPermohonan();
 
@@ -1154,9 +1127,9 @@
                 body: tableRows,
                 startY: 28,
                 theme: 'grid',
-                styles: { fontSize: 8 },
-                headStyles: { fillColor: [37, 99, 235] },
-                alternateRowStyles: { fillColor: [248, 250, 252] }
+                styles: {fontSize: 8},
+                headStyles: {fillColor: [37, 99, 235]},
+                alternateRowStyles: {fillColor: [248, 250, 252]}
             });
 
             doc.save(`Laporan_Permohonan_${new Date().getTime()}.pdf`);
@@ -1165,11 +1138,6 @@
 
         function bukaFormTambahPerm() {
             ['edit-perm-id', 'add-nik', 'add-nama', 'add-alamat', 'add-kel', 'add-kec', 'add-kab', 'add-prov', 'add-lat', 'add-long', 'add-tarif', 'add-daya', 'add-biaya'].forEach(el => document.getElementById(el).value = '');
-            document.getElementById('add-jenis').value = 'Pasang Baru';
-            document.getElementById('add-tanpa-nidi').checked = false;
-            document.getElementById('container-tanpa-nidi').classList.add('hidden');
-            document.getElementById('container-tanpa-nidi').classList.remove('flex');
-
             document.getElementById('modal-title-perm').innerText = 'Tambah Permohonan Baru';
             document.getElementById('edit-progress-container').classList.add('hidden');
             openModal('modal-add');
@@ -1184,17 +1152,6 @@
                 const el = document.getElementById(`add-${key === 'kelurahan' ? 'kel' : key === 'kecamatan' ? 'kec' : key === 'kabupaten' ? 'kab' : key === 'provinsi' ? 'prov' : key}`);
                 if (el) el.value = p[key] || '';
             });
-
-            document.getElementById('add-tanpa-nidi').checked = p.tanpaNidi || false;
-            const containerTanpaNidi = document.getElementById('container-tanpa-nidi');
-            if (p.jenis === 'Tambah Daya') {
-                containerTanpaNidi.classList.remove('hidden');
-                containerTanpaNidi.classList.add('flex');
-            } else {
-                containerTanpaNidi.classList.add('hidden');
-                containerTanpaNidi.classList.remove('flex');
-            }
-
             document.getElementById('edit-progress-container').classList.remove('hidden');
             document.getElementById('edit-progress').value = p.status === 'Selesai' ? 'selesai' : (p.status === 'Lunas' ? `step-${p.step}` : 'menunggu');
             openModal('modal-add');
@@ -1203,27 +1160,54 @@
         async function simpanPermohonan() {
             if (!currentUser) return showToast('Menunggu koneksi database...', 'error');
             const id = document.getElementById('edit-perm-id').value, nik = document.getElementById('add-nik').value, nama = document.getElementById('add-nama').value, alamat = document.getElementById('add-alamat').value, daya = document.getElementById('add-daya').value, biaya = document.getElementById('add-biaya').value;
-            const jenisLayanan = document.getElementById('add-jenis').value;
-            const tanpaNidi = jenisLayanan === 'Tambah Daya' ? document.getElementById('add-tanpa-nidi').checked : false;
-
             if (!nik || !nama || !alamat || !daya || !biaya) return showToast('Kolom wajib (*) harus diisi!', 'error');
 
             if (id) {
+                const p = state.permohonan.find(x => x.id === id);
                 let updates = {
-                    nik: nik, nama: nama, alamat: alamat, jenis: jenisLayanan,
+                    nik: nik, nama: nama, alamat: alamat, jenis: document.getElementById('add-jenis').value,
                     kelurahan: document.getElementById('add-kel').value, kecamatan: document.getElementById('add-kec').value,
                     kabupaten: document.getElementById('add-kab').value, provinsi: document.getElementById('add-prov').value,
                     lat: document.getElementById('add-lat').value, long: document.getElementById('add-long').value,
-                    tarif: document.getElementById('add-tarif').value, daya: daya, biaya: parseInt(biaya), tanpaNidi: tanpaNidi
+                    tarif: document.getElementById('add-tarif').value, daya: daya, biaya: parseInt(biaya)
                 };
-                const progVal = document.getElementById('edit-progress').value;
-                if (progVal === 'menunggu') { updates.status = 'Menunggu Pembayaran'; updates.step = 0; } else if (progVal === 'selesai') { updates.status = 'Selesai'; updates.step = 6; } else if (progVal.startsWith('step-')) { updates.status = 'Lunas'; updates.step = parseInt(progVal.split('-')[1]); }
 
-                await setDoc(doc(db, 'permohonan', id), updates, { merge: true });
-                showToast('Data diperbarui secara permanen!');
+                const progVal = document.getElementById('edit-progress').value;
+                const oldStep = p.status === 'Selesai' ? 6 : (p.status === 'Lunas' ? p.step : -1);
+                let newStep = oldStep;
+
+                if (progVal === 'menunggu') {updates.status = 'Menunggu Pembayaran'; updates.step = 0; newStep = -1;}
+                else if (progVal === 'selesai') {updates.status = 'Selesai'; updates.step = 6; newStep = 6;}
+                else if (progVal.startsWith('step-')) {updates.status = 'Lunas'; updates.step = parseInt(progVal.split('-')[1]); newStep = updates.step;}
+
+                // LOGIKA AUTO-DELETE KAS SAAT ROLLBACK
+                if (newStep < oldStep) {
+                    const relatedKas = state.kas.filter(k => k.refId === id);
+                    let kasToDelete = [];
+
+                    if (newStep < 0) {
+                        // Jika diubah ke "Menunggu Pembayaran", hapus SEMUA kas (termasuk pemasukan awal)
+                        kasToDelete = relatedKas.map(k => k.id);
+                    } else {
+                        // Hapus Pengeluaran NIDI jika mundur ke sebelum bayar NIDI
+                        if (newStep <= 4) kasToDelete.push(...relatedKas.filter(k => k.ket.includes('NIDI')).map(k => k.id));
+                        // Hapus Pengeluaran Pemasangan jika mundur ke sebelum Pemasangan
+                        if (newStep <= 1) kasToDelete.push(...relatedKas.filter(k => k.ket.includes('Pemasangan')).map(k => k.id));
+                        // Hapus Pengeluaran PPOB jika mundur ke sebelum PPOB
+                        if (newStep <= 0) kasToDelete.push(...relatedKas.filter(k => k.ket.includes('PPOB')).map(k => k.id));
+                    }
+
+                    // Eksekusi penghapusan di Firebase
+                    for (const kasId of [...new Set(kasToDelete)]) { // Set digunakan agar ID tidak ganda
+                        await deleteDoc(doc(db, 'kas', kasId));
+                    }
+                }
+
+                await setDoc(doc(db, 'permohonan', id), updates, {merge: true});
+                showToast('Data & Progres diperbarui!');
             } else {
                 const newId = generateId('REQ');
-                const newData = { id: newId, nik, nama, alamat, jenis: jenisLayanan, daya, biaya: parseInt(biaya), kelurahan: document.getElementById('add-kel').value, kecamatan: document.getElementById('add-kec').value, kabupaten: document.getElementById('add-kab').value, provinsi: document.getElementById('add-prov').value, lat: document.getElementById('add-lat').value, long: document.getElementById('add-long').value, tarif: document.getElementById('add-tarif').value, status: 'Menunggu Pembayaran', date: new Date().toISOString(), step: 0, tanpaNidi: tanpaNidi };
+                const newData = {id: newId, nik, nama, alamat, jenis: document.getElementById('add-jenis').value, daya, biaya: parseInt(biaya), kelurahan: document.getElementById('add-kel').value, kecamatan: document.getElementById('add-kec').value, kabupaten: document.getElementById('add-kab').value, provinsi: document.getElementById('add-prov').value, lat: document.getElementById('add-lat').value, long: document.getElementById('add-long').value, tarif: document.getElementById('add-tarif').value, status: 'Menunggu Pembayaran', date: new Date().toISOString(), step: 0};
 
                 await setDoc(doc(db, 'permohonan', newId), newData);
                 showToast('Permohonan ditambahkan ke database!');
@@ -1237,7 +1221,7 @@
             document.getElementById('copy-textarea').value = `Nama : ${p.nama}\nNIK : ${p.nik || '-'}\nAlamat : ${p.alamat || '-'}\nKelurahan : ${p.kelurahan || '-'}\nKecamatan : ${p.kecamatan || '-'}\nKabupaten : ${p.kabupaten || '-'}\nPropinsi : ${p.provinsi || '-'}\nTarif : ${p.tarif || '-'}\nDaya : ${p.daya || '-'}VA\nTitik koordinat : ${p.lat || '-'} ${p.long || '-'}\nUnit : ULP Agats`;
             openModal('modal-copy');
         }
-        function executeCopy() { const tx = document.getElementById('copy-textarea'); tx.select(); document.execCommand('copy'); showToast('Teks disalin!'); closeModal('modal-copy'); }
+        function executeCopy() {const tx = document.getElementById('copy-textarea'); tx.select(); document.execCommand('copy'); showToast('Teks disalin!'); closeModal('modal-copy');}
 
         function bukaFormBayar(id) {
             const p = state.permohonan.find(x => x.id === id); tempBayarId = id;
@@ -1251,18 +1235,18 @@
             const nom = parseInt(document.getElementById('bayar-nominal').value), link = document.getElementById('bayar-link').value, p = state.permohonan.find(x => x.id === tempBayarId);
             if (nom < p.biaya) return showToast('Nominal kurang!', 'error'); if (!link.trim()) return showToast('Masukkan link GDrive!', 'error');
 
-            await setDoc(doc(db, 'permohonan', p.id), { status: 'Lunas', step: 0 }, { merge: true });
+            await setDoc(doc(db, 'permohonan', p.id), {status: 'Lunas', step: 0}, {merge: true});
             const kId = generateId('K');
-            await setDoc(doc(db, 'kas', kId), { id: kId, date: new Date().toISOString(), ket: `Pembayaran ${p.jenis} - ID: ${p.id}`, tipe: 'Pemasukan', nominal: nom, refId: p.id, link: link });
+            await setDoc(doc(db, 'kas', kId), {id: kId, date: new Date().toISOString(), ket: `Pembayaran ${p.jenis} - ID: ${p.id}`, tipe: 'Pemasukan', nominal: nom, refId: p.id, link: link});
 
             closeModal('modal-bayar');
             showToast('Pembayaran dicatat ke database!');
 
-            setTimeout(() => { cetakStruk(p.id); }, 1000);
+            setTimeout(() => {cetakStruk(p.id);}, 1000);
         }
 
         function cetakStruk(id) {
-            const { jsPDF } = window.jspdf;
+            const {jsPDF} = window.jspdf;
             const p = state.permohonan.find(x => x.id === id);
             if (!p) return;
 
@@ -1274,9 +1258,9 @@
 
             doc.setFontSize(16);
             doc.setFont('helvetica', 'bold');
-            doc.text('KUITANSI PEMBAYARAN', 105, 15, { align: 'center' });
+            doc.text('KUITANSI PEMBAYARAN', 105, 15, {align: 'center'});
             doc.setFontSize(12);
-            doc.text('LOKET PLN ULP AGATS', 105, 22, { align: 'center' });
+            doc.text('LOKET PLN ULP AGATS', 105, 22, {align: 'center'});
 
             doc.setLineWidth(0.2);
             doc.line(10, 26, 200, 26);
@@ -1296,13 +1280,13 @@
 
             doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setFillColor(240, 240, 240);
             doc.rect(15, startY + lh * 6, 80, 12, 'F');
-            doc.text(formatRp(p.biaya), 55, startY + lh * 6 + 8, { align: 'center' });
+            doc.text(formatRp(p.biaya), 55, startY + lh * 6 + 8, {align: 'center'});
 
             doc.setFontSize(10); doc.setFont('helvetica', 'normal');
             const ttdY = startY + lh * 6;
-            doc.text('Agats, ' + (trx ? formatDate(trx.date).split(',')[0] : formatDate(p.date).split(',')[0]), 160, ttdY, { align: 'center' });
-            doc.text('Petugas Loket', 160, ttdY + 5, { align: 'center' });
-            doc.text('(_________________________)', 160, ttdY + 25, { align: 'center' });
+            doc.text('Agats, ' + (trx ? formatDate(trx.date).split(',')[0] : formatDate(p.date).split(',')[0]), 160, ttdY, {align: 'center'});
+            doc.text('Petugas Loket', 160, ttdY + 5, {align: 'center'});
+            doc.text('(_________________________)', 160, ttdY + 25, {align: 'center'});
 
             doc.save(`Kuitansi_${p.id}_${p.nama.replace(/\s+/g, '_')}.pdf`);
             showToast('Kuitansi PDF berhasil dibuat!', 'success');
@@ -1314,11 +1298,6 @@
             const container = document.getElementById('timeline-container'); container.innerHTML = '';
 
             for (let i = 0; i < PROGRESS_STEPS.length; i++) {
-                // Skip rendering NIDI steps if bypass is active from creation
-                if (p.tanpaNidi && (i === 4 || i === 5)) {
-                    continue;
-                }
-
                 const isCompleted = p.step > i || p.status === 'Selesai', isActive = p.step === i && p.status !== 'Selesai';
                 let iconClass = isCompleted ? 'bg-green-50 dark:bg-green-900/30 border-green-500 text-green-500' : (isActive ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-500 text-blue-600 dark:text-blue-400' : 'bg-gray-50 dark:bg-slate-700/50 border-gray-300 dark:border-slate-600 text-gray-400 dark:text-slate-500');
                 let textClass = isCompleted ? 'text-gray-900 dark:text-white font-bold' : (isActive ? 'text-blue-700 dark:text-blue-400 font-bold' : 'text-gray-500 dark:text-slate-400');
@@ -1354,26 +1333,17 @@
                                      <input type="text" id="prog-link-${i}" class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg mb-3">`;
                         }
 
-                        if (i === 4 && p.jenis === 'Tambah Daya') {
-                            html += `
-                                <div class="flex items-center gap-2 mb-3">
-                                    <input type="checkbox" id="prog-bypass-nidi-${p.id}" class="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600" onchange="toggleBypassNidi(this, '${p.id}', ${i})">
-                                    <label for="prog-bypass-nidi-${p.id}" class="text-xs font-medium text-blue-800 dark:text-blue-300 cursor-pointer">Selesaikan tanpa NIDI/SLO (Khusus Tambah Daya)</label>
-                                </div>
-                            `;
-                        }
-
                         if (i === 0 || i === 1 || i === 4) {
-                            html += `<div id="prog-cost-container-${i}"><label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Biaya Pengeluaran Kas (Rp) *</label><input type="number" id="prog-cost-${i}" class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg mb-3"></div>`;
+                            html += `<label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Biaya Pengeluaran Kas (Rp) *</label><input type="number" id="prog-cost-${i}" class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg mb-3">`;
                         }
 
                         let fnCall = '';
                         if (i === 0) fnCall = `updateProgressStepWithCost('${p.id}', 0, 'Biaya Pembayaran BP di PPOB')`;
                         if (i === 1) fnCall = `updateProgressStepWithCost('${p.id}', 1, 'Biaya Pemasangan di Lokasi')`;
-                        if (i === 4) fnCall = `handleNidiStep('${p.id}', 4)`;
+                        if (i === 4) fnCall = `updateProgressStepWithCost('${p.id}', 4, 'Biaya Pembayaran NIDI & SLO')`;
                         if (i === 5) fnCall = `updateProgressStepBerkas('${p.id}', 5)`;
 
-                        html += `<button id="prog-btn-${i}" onclick="${fnCall}" class="w-full px-3 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700"><i class="fa-solid fa-check"></i> Selesaikan</button></div>`;
+                        html += `<button onclick="${fnCall}" class="w-full px-3 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700"><i class="fa-solid fa-check"></i> Selesaikan</button></div>`;
 
                     } else {
                         html += `<button onclick="updateProgressStep('${p.id}', ${i})" class="mt-2 px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-md hover:bg-blue-700">Selesaikan Tahap Ini</button>`;
@@ -1383,36 +1353,6 @@
             }
             openModal('modal-progress');
         }
-
-        window.toggleBypassNidi = function (checkbox, id, stepIndex) {
-            const costContainer = document.getElementById(`prog-cost-container-${stepIndex}`);
-            const btn = document.getElementById(`prog-btn-${stepIndex}`);
-            if (checkbox.checked) {
-                if (costContainer) costContainer.classList.add('hidden');
-                if (btn) btn.innerHTML = '<i class="fa-solid fa-forward-step"></i> Selesaikan Permohonan';
-            } else {
-                if (costContainer) costContainer.classList.remove('hidden');
-                if (btn) btn.innerHTML = '<i class="fa-solid fa-check"></i> Selesaikan';
-            }
-        };
-
-        window.handleNidiStep = async function (id, stepIndex) {
-            if (!currentUser) return showToast("Sistem belum siap. Coba lagi.", "error");
-            const p = state.permohonan.find(x => x.id === id); if (!p || p.step !== stepIndex) return;
-
-            const bypassCheckbox = document.getElementById(`prog-bypass-nidi-${id}`);
-            const isBypass = bypassCheckbox && bypassCheckbox.checked;
-
-            if (isBypass) {
-                // Instantly complete without kas or upload
-                await setDoc(doc(db, 'permohonan', id), { step: 6, status: 'Selesai', tanpaNidi: true }, { merge: true });
-                showToast('Permohonan selesai tanpa NIDI/SLO!');
-                openProgressModal(id);
-            } else {
-                // Proceed with normal cost flow
-                updateProgressStepWithCost(id, 4, 'Biaya Pembayaran NIDI & SLO');
-            }
-        };
 
         async function updateProgressStepWithCost(id, stepIndex, costName) {
             if (!currentUser) return showToast("Sistem belum siap. Coba lagi.", "error");
@@ -1427,14 +1367,14 @@
             }
 
             let agendaInput = '', pemasangInput = '';
-            if (stepIndex === 0) { agendaInput = document.getElementById(`prog-agenda-${stepIndex}`).value; if (!agendaInput.trim()) return showToast('Masukkan Nomor Agenda!', 'error'); }
-            if (stepIndex === 1) { pemasangInput = document.getElementById(`prog-pemasang-${stepIndex}`).value; if (!pemasangInput.trim()) return showToast('Masukkan Nama Pemasang!', 'error'); }
+            if (stepIndex === 0) {agendaInput = document.getElementById(`prog-agenda-${stepIndex}`).value; if (!agendaInput.trim()) return showToast('Masukkan Nomor Agenda!', 'error');}
+            if (stepIndex === 1) {pemasangInput = document.getElementById(`prog-pemasang-${stepIndex}`).value; if (!pemasangInput.trim()) return showToast('Masukkan Nama Pemasang!', 'error');}
 
             if (!costInput || costInput <= 0) return showToast('Masukkan biaya pengeluaran!', 'error');
             if (calculateSaldo() < parseInt(costInput)) return showToast('Saldo kas tidak mencukupi!', 'error');
 
             const kId = generateId('K');
-            let kasData = { id: kId, date: new Date().toISOString(), ket: `${costName} (${p.id})${stepIndex === 0 ? ` - Agenda: ${agendaInput}` : stepIndex === 1 ? ` - Pemasang: ${pemasangInput}` : ''}`, tipe: 'Pengeluaran', nominal: parseInt(costInput), refId: p.id };
+            let kasData = {id: kId, date: new Date().toISOString(), ket: `${costName} (${p.id})${stepIndex === 0 ? ` - Agenda: ${agendaInput}` : stepIndex === 1 ? ` - Pemasang: ${pemasangInput}` : ''}`, tipe: 'Pengeluaran', nominal: parseInt(costInput), refId: p.id};
             if (linkInput) kasData.link = linkInput;
 
             await setDoc(doc(db, 'kas', kId), kasData);
@@ -1448,7 +1388,7 @@
             const linkInput = document.getElementById(`prog-link-${stepIndex}`).value;
             if (!linkInput.trim()) return showToast('Masukkan link Berkas GDrive!', 'error');
 
-            await setDoc(doc(db, 'permohonan', id), { linkNidiSlo: linkInput, step: stepIndex + 1, status: 'Selesai' }, { merge: true });
+            await setDoc(doc(db, 'permohonan', id), {linkNidiSlo: linkInput, step: stepIndex + 1, status: 'Selesai'}, {merge: true});
             showToast('Seluruh Tahap Selesai!');
             openProgressModal(id);
         }
@@ -1457,19 +1397,12 @@
             if (!currentUser) return;
             const p = state.permohonan.find(x => x.id === id);
             if (p && p.step === stepIndex) {
-                let updates = { step: p.step + 1 };
-
-                // If bypassing NIDI, completing step 3 means it's fully done
-                if (p.tanpaNidi && updates.step === 4) {
-                    updates.step = 6;
-                    updates.status = 'Selesai';
-                }
-
+                let updates = {step: p.step + 1};
                 if (updates.step >= PROGRESS_STEPS.length) updates.status = 'Selesai';
                 if (agendaInput) updates.noAgenda = agendaInput;
                 if (pemasangInput) updates.namaPemasang = pemasangInput;
 
-                await setDoc(doc(db, 'permohonan', id), updates, { merge: true });
+                await setDoc(doc(db, 'permohonan', id), updates, {merge: true});
                 showToast('Tahap selesai dan disimpan!'); openProgressModal(id);
             }
         }
@@ -1481,7 +1414,7 @@
             if (nominal > calculateSaldo()) return showToast('Saldo tidak cukup!', 'error');
 
             const kId = generateId('TRK');
-            await setDoc(doc(db, 'kas', kId), { id: kId, date: new Date().toISOString(), ket: ket, tipe: 'Penarikan', nominal: nominal });
+            await setDoc(doc(db, 'kas', kId), {id: kId, date: new Date().toISOString(), ket: ket, tipe: 'Penarikan', nominal: nominal});
 
             closeModal('modal-tarik-kas'); showToast('Penarikan sukses dicatat!'); document.getElementById('tarik-nominal').value = ''; document.getElementById('tarik-ket').value = '';
         }
@@ -1507,11 +1440,11 @@
 
         function renderKasList() {
             const search = document.getElementById('search-kas').value.toLowerCase(), fMonth = document.getElementById('filter-month').value, fYear = document.getElementById('filter-year').value;
-            let filtered = state.kas.filter(k => { const d = new Date(k.date); return (k.ket.toLowerCase().includes(search) || k.id.toLowerCase().includes(search)) && (fMonth === 'All' || d.getMonth() === parseInt(fMonth)) && (fYear === 'All' || d.getFullYear() === parseInt(fYear)); });
+            let filtered = state.kas.filter(k => {const d = new Date(k.date); return (k.ket.toLowerCase().includes(search) || k.id.toLowerCase().includes(search)) && (fMonth === 'All' || d.getMonth() === parseInt(fMonth)) && (fYear === 'All' || d.getFullYear() === parseInt(fYear));});
             filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             let kPPOB = 0, kPasang = 0, kNidi = 0;
-            filtered.forEach(k => { if (k.tipe !== 'Pemasukan' && k.tipe !== 'Penarikan') { if (k.ket.includes('PPOB')) kPPOB += k.nominal; else if (k.ket.includes('Pemasangan')) kPasang += k.nominal; else if (k.ket.includes('NIDI')) kNidi += k.nominal; } });
+            filtered.forEach(k => {if (k.tipe !== 'Pemasukan' && k.tipe !== 'Penarikan') {if (k.ket.includes('PPOB')) kPPOB += k.nominal; else if (k.ket.includes('Pemasangan')) kPasang += k.nominal; else if (k.ket.includes('NIDI')) kNidi += k.nominal;} });
 
             document.getElementById('saldo-laci-display').innerText = formatRp(calculateSaldo());
             document.getElementById('kas-metrics-summary').innerHTML = `
@@ -1541,19 +1474,19 @@
                 `;
             });
         }
-        function changePageKas(delta) { currentPageKas += delta; renderKasList(); }
-        function openEditKas(id) { const k = state.kas.find(x => x.id === id); if (!k) return; document.getElementById('edit-kas-id').value = k.id; document.getElementById('edit-kas-ket').value = k.ket; document.getElementById('edit-kas-nominal').value = k.nominal; openModal('modal-edit-kas'); }
+        function changePageKas(delta) {currentPageKas += delta; renderKasList();}
+        function openEditKas(id) {const k = state.kas.find(x => x.id === id); if (!k) return; document.getElementById('edit-kas-id').value = k.id; document.getElementById('edit-kas-ket').value = k.ket; document.getElementById('edit-kas-nominal').value = k.nominal; openModal('modal-edit-kas');}
 
         async function saveEditKas() {
             if (!currentUser) return showToast("Sistem belum siap. Coba lagi.", "error");
             const id = document.getElementById('edit-kas-id').value, ket = document.getElementById('edit-kas-ket').value, nom = parseInt(document.getElementById('edit-kas-nominal').value);
             if (!ket || !nom) return showToast('Isi semua kolom!', 'error');
 
-            await setDoc(doc(db, 'kas', id), { ket: ket, nominal: nom }, { merge: true });
+            await setDoc(doc(db, 'kas', id), {ket: ket, nominal: nom}, {merge: true});
             showToast('Kas diperbarui permanen!'); closeModal('modal-edit-kas');
         }
 
-        window.handleLogin = handleLogin; window.toggleDarkMode = toggleDarkMode; window.switchTab = switchTab;
+        window.handleLogin = handleLogin; window.toggleDarkMode = toggleDarkMode; window.toggleMobileMenu = toggleMobileMenu; window.switchTab = switchTab;
         window.openModal = openModal; window.closeModal = closeModal; window.goToPermohonanFilter = goToPermohonanFilter;
         window.requestAuth = requestAuth; window.verifyAuth = verifyAuth; window.executeAuthAction = executeAuthAction;
         window.deletePermohonan = deletePermohonan; window.deleteKas = deleteKas; window.renderDashboard = renderDashboard;
@@ -1564,8 +1497,7 @@
         window.updateProgressStepWithCost = updateProgressStepWithCost; window.updateProgressStepBerkas = updateProgressStepBerkas;
         window.updateProgressStep = updateProgressStep; window.prosesTarikKas = prosesTarikKas; window.renderKasList = renderKasList;
         window.changePageKas = changePageKas; window.openEditKas = openEditKas; window.saveEditKas = saveEditKas;
-        window.formatRp = formatRp; window.calculateSaldo = calculateSaldo; window.toggleMobileMenu = toggleMobileMenu;
-        window.handleLogout = handleLogout;
+        window.formatRp = formatRp; window.calculateSaldo = calculateSaldo;
 
         window.onload = () => switchTab('dashboard');
     </script>
