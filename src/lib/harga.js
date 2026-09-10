@@ -178,11 +178,18 @@ export function kekuranganBiaya(p, hargaRows, tdRows) {
 }
 
 /**
- * Dana NIDI+SLO milik pelanggan Pasang Baru yang masih tersimpan di loket
- * (NIDI+SLO belum dibayar & masih ada sisa dana). Return rupiah (0 bila tidak berlaku).
+ * Dana NIDI+SLO milik pelanggan Pasang Baru yang benar-benar tersimpan di loket:
+ * NIDI+SLO belum dibayar DAN masih ada saving loket (> 0) — artinya dana pelanggan
+ * cukup menutup semua alokasi termasuk NIDI+SLO. Return biaya NIDI+SLO (0 bila tidak).
  */
 export function danaNidiDiLoket(p, kasRows, hargaRows, tdRows) {
   const d = rincianDana(p, kasRows, hargaRows, tdRows);
-  if (!d || d.ref?.kind !== 'Pasang Baru' || !d.nidiBelum || d.sisa <= 0 || d.alokNidi <= 0) return 0;
-  return Math.min(d.sisa, d.alokNidi);
+  if (!d || d.ref?.kind !== 'Pasang Baru' || d.alokNidi <= 0 || d.saving <= 0) return 0;
+  return d.alokNidi;
+}
+
+/** true bila permohonan sudah dibayar tapi tidak menyisakan saving loket (saving = 0). */
+export function tanpaSavingLoket(p, kasRows, hargaRows, tdRows) {
+  const d = rincianDana(p, kasRows, hargaRows, tdRows);
+  return !!d && d.saving === 0;
 }

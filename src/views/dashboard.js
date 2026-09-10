@@ -1,6 +1,6 @@
 import { state, calculateSaldo, gvBelumMasuk } from '../store.js';
 import { formatRp, formatRpShort, formatDate, MONTHS, esc } from '../lib/format.js';
-import { hargaTotalUntuk, danaNidiDiLoket, kekuranganBiaya } from '../lib/harga.js';
+import { hargaTotalUntuk, danaNidiDiLoket, kekuranganBiaya, rincianDana } from '../lib/harga.js';
 import { statCard, skeletonCards } from '../ui/components.js';
 import { toast } from '../ui/toast.js';
 import { confirmDialog } from '../ui/modal.js';
@@ -81,7 +81,7 @@ export const dashboard = {
   refresh() {
     if (!this.el) return;
     if (!state.ready) {
-      this.el.querySelector('[data-metrics]').innerHTML = skeletonCards(6);
+      this.el.querySelector('[data-metrics]').innerHTML = skeletonCards(7);
       return;
     }
     const saldo = calculateSaldo();
@@ -89,6 +89,7 @@ export const dashboard = {
     let pb1Count = 0, pb1Nidi = 0;
     let nidiHoldCount = 0, nidiHoldTotal = 0;
     let kurangCount = 0, kurangTotal = 0;
+    let noSavingCount = 0;
     const counts = [0, 0, 0, 0, 0, 0];
     for (const p of state.permohonan) {
       if (p.status === 'Menunggu Pembayaran') waiting++;
@@ -103,6 +104,9 @@ export const dashboard = {
       if (nidiHold > 0) { nidiHoldCount++; nidiHoldTotal += nidiHold; }
       const kurang = kekuranganBiaya(p, state.harga, state.hargaTd);
       if (kurang > 0) { kurangCount++; kurangTotal += kurang; }
+
+      const d = rincianDana(p, state.kas, state.harga, state.hargaTd);
+      if (d && d.saving === 0) noSavingCount++;
     }
 
     this.el.querySelector('[data-metrics]').innerHTML = [
@@ -132,6 +136,13 @@ export const dashboard = {
         tone: 'red',
         sub: `Total kurang: ${formatRp(kurangTotal)}`,
         onClick: 'kurang',
+      }),
+      statCard({
+        label: 'Tanpa Saving Loket',
+        value: `${noSavingCount} permohonan`,
+        icon: 'fa-piggy-bank',
+        tone: 'red',
+        onClick: 'nosaving',
       }),
     ].join('');
 
@@ -338,6 +349,7 @@ function onCardClick(e) {
   else if (a === 'pb1') goToPermohonan({ biaya1: true });
   else if (a === 'nidihold') goToPermohonan({ nidiHold: true });
   else if (a === 'kurang') goToPermohonan({ kurang: true });
+  else if (a === 'nosaving') goToPermohonan({ noSaving: true });
   else if (a.startsWith('step:')) goToPermohonan({ status: 'Lunas', step: a.split(':')[1] });
   else if (a.startsWith('open-perm:')) goToPermohonan({ q: a.split(':')[1] });
   else if (a.startsWith('new-from-gv:')) {

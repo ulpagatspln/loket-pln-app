@@ -9,7 +9,9 @@ import { openPermForm } from './permForm.js';
 import { openProgressModal } from './progress.js';
 import { exportPermohonanPDF, cetakStruk } from '../lib/pdf.js';
 import { getPhoto } from '../lib/imageStore.js';
-import { hargaTotalUntuk, rincianDana, danaNidiDiLoket, kekuranganBiaya } from '../lib/harga.js';
+import {
+  hargaTotalUntuk, rincianDana, danaNidiDiLoket, kekuranganBiaya, tanpaSavingLoket,
+} from '../lib/harga.js';
 
 const PER_PAGE = 10;
 const now = new Date();
@@ -24,12 +26,13 @@ let filters = {
   biaya1: false, // hanya Pasang Baru dengan biaya ≤ Rp 1
   nidiHold: false, // hanya Pasang Baru yg dana NIDI+SLO masih di loket
   kurang: false, // hanya yg biaya < Total daftar harga
+  noSaving: false, // hanya yg sudah dibayar tapi saving loket = 0
 };
 
 export function goToPermohonan(overrides = {}) {
   filters = {
     q: '', month: 'All', year: 'All', jenis: 'All', status: 'All', step: 'All',
-    biaya1: false, nidiHold: false, kurang: false, ...overrides,
+    biaya1: false, nidiHold: false, kurang: false, noSaving: false, ...overrides,
   };
   page = 1;
   window.dispatchEvent(new CustomEvent('navigate', { detail: 'permohonan' }));
@@ -58,9 +61,11 @@ function getFiltered() {
       const matchNidiHold =
         !filters.nidiHold || danaNidiDiLoket(p, state.kas, state.harga, state.hargaTd) > 0;
       const matchKurang = !filters.kurang || kekuranganBiaya(p, state.harga, state.hargaTd) > 0;
+      const matchNoSaving =
+        !filters.noSaving || tanpaSavingLoket(p, state.kas, state.harga, state.hargaTd);
       return (
         matchQ && matchStatus && matchStep && matchMonth && matchYear &&
-        matchJenis && matchBiaya1 && matchNidiHold && matchKurang
+        matchJenis && matchBiaya1 && matchNidiHold && matchKurang && matchNoSaving
       );
     })
     .sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -245,7 +250,7 @@ export const permohonan = {
       const b = e.target.closest('[data-clear-filter]');
       if (!b) return;
       const k = b.dataset.clearFilter;
-      filters[k] = k === 'q' ? '' : ['biaya1', 'nidiHold', 'kurang'].includes(k) ? false : 'All';
+      filters[k] = k === 'q' ? '' : ['biaya1', 'nidiHold', 'kurang', 'noSaving'].includes(k) ? false : 'All';
       page = 1;
       this.syncControls();
       this.refresh();
@@ -288,6 +293,7 @@ export const permohonan = {
     if (filters.biaya1) c.push(filterChip('Pasang Baru · Biaya Rp 1', 'biaya1'));
     if (filters.nidiHold) c.push(filterChip('Dana NIDI+SLO di loket', 'nidiHold'));
     if (filters.kurang) c.push(filterChip('Kurang bayar', 'kurang'));
+    if (filters.noSaving) c.push(filterChip('Tanpa saving loket', 'noSaving'));
     chips.innerHTML = c.join('');
 
     if (!state.ready) {

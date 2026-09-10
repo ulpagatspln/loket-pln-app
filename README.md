@@ -131,9 +131,12 @@ dari daftar harga), sisanya = **Saving Loket**.
 - **Dashboard** — 3 kartu turunan (jumlah permohonan + total rupiah, klik → daftar terfilter):
   - **Pasang Baru Biaya Rp 1** (`biaya ≤ 1`, + total biaya NIDI+SLO) → filter `biaya1`
   - **Dana NIDI+SLO di Loket** (`danaNidiDiLoket()` > 0: Pasang Baru, NIDI+SLO belum dibayar,
-    sisa > 0 → `min(sisa, alokNidi)`) → filter `nidiHold`
+    **saving loket > 0** — dana pelanggan cukup menutup semua alokasi → nilai = `alokNidi`)
+    → filter `nidiHold`
   - **Permohonan Kurang Bayar** (`kekuranganBiaya()` > 0: `biaya < Total daftar harga`, +
     total kekurangan) → filter `kurang`
+  - **Tanpa Saving Loket** (`tanpaSavingLoket()`: sudah dibayar tapi `saving = 0`; jumlah
+    permohonan saja) → filter `noSaving`
 
 ## Catatan keamanan
 
