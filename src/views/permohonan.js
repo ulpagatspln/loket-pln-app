@@ -333,7 +333,7 @@ export const permohonan = {
           <thead>
             <tr class="bg-slate-50 text-[10px] uppercase tracking-wider text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
               <th class="p-3 font-semibold">ID</th>
-              <th class="p-3 font-semibold">Pelanggan</th>
+              <th class="min-w-[200px] p-3 font-semibold">Pelanggan</th>
               <th class="p-3 font-semibold">Layanan</th>
               <th class="p-3 font-semibold">Info Pengerjaan</th>
               <th class="p-3 font-semibold">Total Biaya</th>
@@ -357,11 +357,20 @@ export const permohonan = {
   },
 };
 
+// Alamat ringkas di bawah nama (alamat + kel/kec bila ada)
+const alamatLine = (p) => {
+  const detail = [p.kelurahan, p.kecamatan].filter(Boolean).join(", ");
+  const txt = [p.alamat, detail].filter(Boolean).join(" · ");
+  if (!txt) return "";
+  return `<p class="mt-0.5 flex items-start gap-1 text-[11px] leading-snug text-slate-500 dark:text-slate-400" title="${esc(txt)}"><i class="fa-solid fa-location-dot mt-0.5 shrink-0 text-slate-400"></i><span class="line-clamp-2">${esc(txt)}</span></p>`;
+};
+
 const rowHtml = (p) => `
   <tr class="align-top transition-colors hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
     <td class="p-3 font-semibold text-slate-900 dark:text-white">${p.id}</td>
     <td class="p-3"><p class="font-bold text-slate-900 dark:text-white">${esc(p.nama)}</p>
-      <p class="text-[11px] text-slate-400">${formatDate(p.date)}</p>
+      ${alamatLine(p)}
+      <p class="mt-0.5 text-[11px] text-slate-400">${formatDate(p.date)}</p>
       ${gvBadges(p, 'mt-1')}</td>
     <td class="p-3">
       <span class="flex items-center gap-1 text-xs font-medium text-slate-700 dark:text-slate-300">
@@ -383,7 +392,8 @@ const cardHtml = (p) => `
     <div class="flex items-start justify-between gap-3">
       <div class="min-w-0">
         <p class="truncate font-bold text-slate-900 dark:text-white">${esc(p.nama)}</p>
-        <p class="text-[11px] text-slate-400">${p.id} · ${formatDateShort(p.date)}</p>
+        ${alamatLine(p)}
+        <p class="mt-0.5 text-[11px] text-slate-400">${p.id} · ${formatDateShort(p.date)}</p>
         ${gvBadges(p, 'mt-1')}
       </div>
       <div class="shrink-0 text-right">${statusBadge(p)}</div>

@@ -90,6 +90,7 @@ export const dashboard = {
               <span data-gv-count class="badge badge-amber hidden"></span>
             </h3>
             <p data-gv-meta class="mt-0.5 text-xs text-slate-400">Belum ada data GV yang diimpor.</p>
+            <div data-gv-jenis class="mt-1.5 flex hidden flex-wrap gap-1.5"></div>
           </div>
           <label class="btn btn-outline btn-sm shrink-0 cursor-pointer">
             <i class="fa-solid fa-file-import"></i> Import Data GV
@@ -269,6 +270,18 @@ export const dashboard = {
     countEl.textContent = String(belum.length);
     countEl.classList.toggle('hidden', belum.length === 0);
 
+    // Rincian jenis (pemetaan sama dengan prefill form: PERUBAHAN DAYA -> Tambah Daya, sisanya Pasang Baru)
+    const jenisEl = this.el.querySelector('[data-gv-jenis]');
+    if (jenisEl) {
+      const td = belum.filter((r) => /PERUBAHAN DAYA/i.test(r.jenis || '')).length;
+      const pb = belum.length - td;
+      jenisEl.classList.toggle('hidden', belum.length === 0);
+      jenisEl.innerHTML = belum.length
+        ? `<span class="badge bg-pln-500/15 text-pln-600 dark:text-pln-300"><i class="fa-solid fa-plug-circle-plus"></i> Pasang Baru: ${pb}</span>
+           <span class="badge bg-iris-500/15 text-iris-600 dark:text-iris-300"><i class="fa-solid fa-arrow-up-right-dots"></i> Tambah Daya: ${td}</span>`
+        : '';
+    }
+
     if (!belum.length) {
       listEl.innerHTML = `<div class="rounded-lg bg-leaf-500/10 px-3 py-3 text-sm font-medium text-leaf-600 dark:text-leaf-400">
         <i class="fa-solid fa-circle-check"></i> Semua NOAGENDA dari GV sudah masuk di permohonan.</div>`;
@@ -288,6 +301,7 @@ export const dashboard = {
                 <div class="min-w-0">
                   <p class="truncate text-sm font-semibold text-slate-900 dark:text-white">${esc(r.nama || '(tanpa nama)')}</p>
                   <p class="font-mono text-[11px] text-slate-400">${esc(r.noAgenda)}</p>
+                  ${r.alamat ? `<p class="mt-0.5 flex items-start gap-1 text-[11px] leading-snug text-slate-500 dark:text-slate-400" title="${esc(r.alamat)}"><i class="fa-solid fa-location-dot mt-0.5 shrink-0 text-slate-400"></i><span class="line-clamp-2">${esc(r.alamat)}</span></p>` : ""}
                 </div>
                 <div class="flex shrink-0 items-start gap-1">
                   <div class="flex flex-col items-end gap-1">

@@ -44,7 +44,7 @@ src/
     nidiTanda.js      Penanda NIDI+SLO manual per permohonan (chip + pemilih)
   views/
     dashboard.js      Metrik, grafik saving & tarik kas 6 bulan, ringkasan hari ini, antrean pekerjaan, import GV
-    permohonan.js     Daftar (tabel desktop / kartu mobile), filter, PDF, bayar, salin WA
+    permohonan.js     Daftar (tabel desktop / kartu mobile, alamat di bawah nama), filter, PDF, bayar, salin WA
     permForm.js       Form tambah/edit 2 langkah
     progress.js       Timeline 6 tahap + input biaya/link/agenda/pemasang
     kas.js            Buku kas, ringkasan, tambah/tarik/edit, saldo berjalan, filter jenis transaksi
