@@ -24,7 +24,17 @@
     border-radius: 9999px;
   }
   .dark ::-webkit-scrollbar-thumb {
-    background: #475569;
+    background: #2b3449;
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: #3d4864;
+  }
+  /* Cahaya lembut di latar halaman (gaya dashboard gelap modern) */
+  .dark body {
+    background-image:
+      radial-gradient(60rem 32rem at 12% -12%, rgba(27, 117, 187, 0.16), transparent 60%),
+      radial-gradient(48rem 28rem at 105% 0%, rgba(124, 92, 252, 0.14), transparent 60%);
+    background-attachment: fixed;
   }
   /* Focus ring konsisten & aksesibel */
   :focus-visible {
@@ -37,29 +47,29 @@
 @layer components {
   /* ===== Buttons ===== */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all
       disabled:cursor-not-allowed disabled:opacity-60 active:scale-[.98];
   }
   .btn-primary {
-    @apply bg-pln-500 text-white shadow-sm shadow-pln-500/30 hover:bg-pln-600;
+    @apply bg-grad-pln text-white shadow-glow-pln hover:brightness-110;
   }
   .btn-gold {
-    @apply bg-gold-500 text-white shadow-sm shadow-gold-500/30 hover:bg-gold-600;
+    @apply bg-gold-500 text-white shadow-glow-gold hover:bg-gold-600;
   }
   .btn-success {
-    @apply bg-leaf-500 text-white shadow-sm shadow-leaf-500/30 hover:bg-leaf-600;
+    @apply bg-leaf-500 text-white shadow-glow-leaf hover:bg-leaf-600;
   }
   .btn-danger {
-    @apply bg-red-600 text-white shadow-sm shadow-red-500/30 hover:bg-red-700;
+    @apply bg-red-600 text-white shadow-sm shadow-red-500/40 hover:bg-red-700;
   }
   .btn-ghost {
-    @apply bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700;
+    @apply bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10;
   }
   .btn-danger-ghost {
     @apply bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-950/40 dark:text-red-400 dark:hover:bg-red-950/70;
   }
   .btn-outline {
-    @apply border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700;
+    @apply border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10;
   }
   .btn-sm {
     @apply px-3 py-1.5 text-xs;
@@ -71,9 +81,9 @@
   /* ===== Inputs ===== */
   .input,
   .select {
-    @apply w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 transition-colors
+    @apply w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 transition-colors
       placeholder:text-slate-400 focus:border-pln-500 focus:outline-none focus:ring-2 focus:ring-pln-500/30
-      dark:border-slate-600 dark:bg-slate-900 dark:text-white;
+      dark:border-white/10 dark:bg-slate-800/70 dark:text-white;
   }
   .field-label {
     @apply mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300;
@@ -81,7 +91,31 @@
 
   /* ===== Card ===== */
   .card {
-    @apply rounded-2xl border border-slate-200/80 bg-white shadow-card dark:border-slate-800 dark:bg-slate-900;
+    @apply rounded-2xl border border-slate-200/80 bg-white shadow-card
+      dark:border-white/[0.07] dark:bg-slate-900 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_12px_32px_-20px_rgba(0,0,0,0.9)];
+  }
+
+  /* Badge ikon bulat dengan gradasi — dipakai kartu metrik & tile */
+  .icon-badge {
+    @apply grid shrink-0 place-items-center rounded-2xl text-white;
+  }
+  .icon-pln {
+    @apply bg-grad-pln shadow-glow-pln;
+  }
+  .icon-iris {
+    @apply bg-grad-iris shadow-glow-iris;
+  }
+  .icon-leaf {
+    @apply bg-grad-leaf shadow-glow-leaf;
+  }
+  .icon-gold {
+    @apply bg-grad-gold shadow-glow-gold;
+  }
+
+  /* Kapsul kecil (tanggal, filter, info di topbar) */
+  .pill {
+    @apply inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold
+      text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300;
   }
 
   /* ===== Badge ===== */
@@ -103,11 +137,19 @@
 
   /* ===== Nav item ===== */
   .nav-item {
-    @apply flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors
-      hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800;
+    @apply relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 transition-all
+      hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-slate-200;
+  }
+  .nav-item i {
+    @apply grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-slate-100 text-[13px] text-slate-400 transition-all
+      dark:bg-white/5 dark:text-slate-400;
   }
   .nav-item.active {
-    @apply bg-pln-500/10 font-semibold text-pln-600 dark:bg-pln-500/15 dark:text-pln-300;
+    @apply bg-gradient-to-r from-pln-500/15 to-iris-500/15 font-semibold text-pln-700 ring-1 ring-inset ring-pln-500/20
+      dark:text-white;
+  }
+  .nav-item.active i {
+    @apply bg-grad-pln text-white shadow-glow-pln;
   }
 
   /* ===== Skeleton ===== */

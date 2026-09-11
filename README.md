@@ -182,10 +182,31 @@ Grafik batang **3 bulan terakhir** di Dashboard (sebelumnya "Kas Masuk" 6 bulan)
 
 Di bawah grafik ada **"Analisa Keperluan Tarik Kas"** (periode 3 bulan yang sama): tiap
 transaksi `Penarikan` dikelompokkan berdasarkan kata kunci di keterangan (`KAS_KATEGORI` di
-`dashboard.js` — Sosial & Kedukaan, Air Galon Kantor, Konsumsi & Jamuan Tamu, Pekerjaan
+`dashboard.js` — Sosial & Kedukaan, Air Kantor, Konsumsi & Jamuan Tamu, Pekerjaan
 Lapangan, Operasional & Administrasi, Lainnya sbg fallback), ditampilkan sebagai daftar
 batang mini + rupiah + jumlah transaksi + persentase dari total tarik periode itu. Klasifikasi
 berbasis regex kata kunci teks bebas (heuristik) — bukan field kategori terstruktur.
+
+## Tema tampilan (gaya dashboard modern)
+
+Tampilan memakai gaya dashboard gelap modern: latar navy pekat dengan cahaya lembut
+(radial gradient di `body`), kartu `rounded-2xl` yang lebih terang dari latar, ikon
+berbentuk badge gradasi, sidebar dengan pill aktif, dan topbar berisi sapaan + tanggal.
+
+- `tailwind.config.js` — ujung gelap skala **`slate` di-remap** ke nuansa navy
+  (`900 #121829` = kartu/sidebar, `800 #1b2235`, `700 #2b3449`) dan `surface.dark #080b14`
+  = latar halaman. Karena seluruh view memakai `slate-700/800/900`, satu perubahan di sini
+  menyeragamkan semua tampilan gelap. Ditambah aksen `iris` (ungu), `bg-grad-*` (gradasi),
+  dan `shadow-glow-*`.
+- `src/style.css` — `.card`, `.btn-primary` (gradasi biru PLN → ungu), `.input`, `.nav-item`
+  (ikon jadi kotak kecil; aktif = gradasi + glow), helper `.icon-badge` + `.icon-pln/iris/leaf/gold`
+  dan `.pill`.
+- Warna identitas PLN tetap jadi warna utama; ungu hanya pasangan gradasi/aksen.
+- Sapaan topbar ("Selamat Pagi/Siang/Sore/Malam") & pill tanggal diisi `renderTopbar()` di
+  `src/main.js`.
+
+Catatan: setelah mengubah `tailwind.config.js`, **restart dev server** — proses Vite yang
+sedang jalan memakai konfigurasi lama dan `@apply` untuk utility baru akan error.
 
 ## Catatan keamanan
 

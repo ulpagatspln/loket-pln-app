@@ -3,7 +3,7 @@ const KEY = 'loket-theme';
 function apply(theme) {
   const dark = theme === 'dark';
   document.documentElement.classList.toggle('dark', dark);
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0f172a' : '#1B75BB');
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#080b14' : '#1B75BB');
   document.querySelectorAll('[data-theme-icon]').forEach((el) => {
     el.className = dark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
   });

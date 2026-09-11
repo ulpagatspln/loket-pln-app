@@ -28,7 +28,7 @@ function renderNav() {
   const side = document.querySelector('[data-nav]');
   const bottom = document.querySelector('[data-bottom-nav]');
   side.innerHTML = NAV.map(
-    (n) => `<a href="#${n.id}" data-navlink="${n.id}" class="nav-item"><i class="fa-solid ${n.icon} w-5 text-center"></i> ${n.label}</a>`
+    (n) => `<a href="#${n.id}" data-navlink="${n.id}" class="nav-item"><i class="fa-solid ${n.icon}"></i> ${n.label}</a>`
   ).join('');
   bottom.innerHTML = `<div class="mx-auto grid max-w-md" style="grid-template-columns:repeat(${NAV.length},minmax(0,1fr))">
     ${NAV.map(
@@ -70,6 +70,21 @@ function switchTab(id) {
   closeSidebar();
   document.querySelector('main')?.scrollTo(0, 0);
   if (location.hash.slice(1) !== id) history.replaceState(null, '', `#${id}`);
+}
+
+/* ---------- Topbar: sapaan + tanggal ---------- */
+function renderTopbar() {
+  const now = new Date();
+  const h = now.getHours();
+  const sapa = h < 11 ? 'Selamat Pagi' : h < 15 ? 'Selamat Siang' : h < 18 ? 'Selamat Sore' : 'Selamat Malam';
+  const g = document.querySelector('[data-greeting]');
+  if (g) g.textContent = `${sapa}, Admin Loket 👋`;
+  const pill = document.querySelector('[data-today-pill] span');
+  if (pill) {
+    pill.textContent = now.toLocaleDateString('id-ID', {
+      weekday: 'long', day: 'numeric', month: 'short', year: 'numeric',
+    });
+  }
 }
 
 /* ---------- Sidebar (mobile) ---------- */
@@ -125,6 +140,7 @@ function initAuth() {
 /* ---------- Boot ---------- */
 initTheme();
 renderNav();
+renderTopbar();
 initAuth();
 
 document.querySelector('[data-open-sidebar]')?.addEventListener('click', openSidebar);

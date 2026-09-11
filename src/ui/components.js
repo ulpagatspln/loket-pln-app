@@ -2,22 +2,25 @@ import { esc } from '../lib/format.js';
 
 export const statCard = ({ label, value, icon, tone = 'pln', sub = '', onClick = '' }) => {
   const tones = {
-    pln: 'bg-pln-500 text-white shadow-pln-500/30',
-    gold: 'bg-gold-500 text-white shadow-gold-500/30',
-    leaf: 'bg-leaf-500 text-white shadow-leaf-500/30',
-    amber: 'bg-amber-500 text-white shadow-amber-500/30',
-    red: 'bg-red-500 text-white shadow-red-500/30',
+    pln: 'icon-pln',
+    iris: 'icon-iris',
+    gold: 'icon-gold',
+    leaf: 'icon-leaf',
+    amber: 'icon-gold',
+    red: 'bg-gradient-to-br from-red-500 to-rose-600 shadow-[0_10px_26px_-10px_rgba(244,63,94,.7)]',
   };
   return `
     <div ${onClick ? `role="button" tabindex="0" data-action="${onClick}"` : ''}
-      class="card flex items-center gap-4 p-4 transition-all ${onClick ? 'cursor-pointer hover:-translate-y-0.5 hover:shadow-card-hover' : ''}">
-      <div class="grid h-12 w-12 shrink-0 place-items-center rounded-xl text-lg shadow-lg ${tones[tone]}">
-        <i class="fa-solid ${icon}"></i>
-      </div>
-      <div class="min-w-0">
-        <p class="truncate text-xs font-medium text-slate-500 dark:text-slate-400">${label}</p>
-        <p class="mt-0.5 text-xl font-extrabold text-slate-900 dark:text-white">${value}</p>
-        ${sub ? `<p class="text-[11px] text-slate-400">${sub}</p>` : ''}
+      class="card group relative overflow-hidden p-4 transition-all ${onClick ? 'cursor-pointer hover:-translate-y-0.5 hover:shadow-card-hover' : ''}">
+      <div class="flex items-center gap-3.5">
+        <div class="icon-badge ${tones[tone] || tones.pln} h-11 w-11 text-base">
+          <i class="fa-solid ${icon}"></i>
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="text-[11px] font-medium leading-tight text-slate-500 dark:text-slate-400">${label}</p>
+          <p class="mt-1 whitespace-nowrap text-lg font-extrabold tabular-nums text-slate-900 dark:text-white xl:text-xl">${value}</p>
+          ${sub ? `<p class="mt-0.5 text-[10px] leading-tight text-slate-400">${sub}</p>` : ''}
+        </div>
       </div>
     </div>`;
 };
@@ -48,7 +51,7 @@ export const skeletonRows = (n = 5) =>
     .join('');
 
 export const skeletonCards = (n = 3) =>
-  `<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">${Array.from({ length: n })
+  `<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">${Array.from({ length: n })
     .map(() => `<div class="card p-4"><div class="skeleton mb-3 h-12 w-12 rounded-xl"></div><div class="skeleton mb-2 h-3 w-1/2"></div><div class="skeleton h-5 w-2/3"></div></div>`)
     .join('')}</div>`;
 

@@ -22,7 +22,7 @@ const NIDI_STATUS_ORDER = [
 // Kategori peruntukan tarik kas — dicocokkan dari kata kunci di keterangan (urutan = prioritas).
 const KAS_KATEGORI = [
   { key: 'sosial', label: 'Sosial & Kedukaan', icon: 'fa-heart', bar: 'bg-pink-500', test: /karangan bunga|sumbangan|duka|ultah/i },
-  { key: 'air', label: 'Air Galon Kantor', icon: 'fa-droplet', bar: 'bg-sky-500', test: /\bblong\b|air kantor|filter air/i },
+  { key: 'air', label: 'Air Kantor', icon: 'fa-droplet', bar: 'bg-sky-500', test: /\bblong\b|air kantor|filter air/i },
   { key: 'konsumsi', label: 'Konsumsi & Jamuan Tamu', icon: 'fa-mug-hot', bar: 'bg-amber-500', test: /makan|minum|snack|kopi|kue|tamu|\bteh\b|aqua|nasi|tumpeng|roti|es buah|tissu|tisu/i },
   { key: 'lapangan', label: 'Pekerjaan Lapangan', icon: 'fa-screwdriver-wrench', bar: 'bg-purple-500', test: /grounding|pemerataan beban|\bkabel\b|\bviar\b|bensin|\bsolar\b|pengerjaan/i },
   { key: 'admin', label: 'Operasional & Administrasi', icon: 'fa-building', bar: 'bg-slate-400', test: /materai|hosting|top ?up|ongkir|ongkos kirim|\bpanel\b|retribusi|akrilik|beli tanah/i },
@@ -31,12 +31,12 @@ const KAS_KATEGORI = [
 const kategoriTarik = (ket) => KAS_KATEGORI.find((c) => c.test?.test(ket || '')) || KAS_KATEGORI[KAS_KATEGORI.length - 1];
 
 const PIPE = [
-  { step: 0, label: 'Belum Pembayaran PPOB', icon: 'fa-money-bill-transfer', color: 'border-pln-500' },
-  { step: 1, label: 'Belum Pemasangan', icon: 'fa-helmet-safety', color: 'border-gold-500' },
-  { step: 2, label: 'Belum Penginputan FSO', icon: 'fa-keyboard', color: 'border-purple-500' },
-  { step: 3, label: 'Belum Peremajaan AP2T', icon: 'fa-server', color: 'border-pink-500' },
-  { step: 4, label: 'Belum Bayar NIDI & SLO', icon: 'fa-money-check-dollar', color: 'border-teal-500' },
-  { step: 5, label: 'Belum Upload Berkas NIDI', icon: 'fa-file-signature', color: 'border-leaf-500' },
+  { step: 0, label: 'Belum Pembayaran PPOB', icon: 'fa-money-bill-transfer', tone: 'bg-pln-500/15 text-pln-500 dark:text-pln-300' },
+  { step: 1, label: 'Belum Pemasangan', icon: 'fa-helmet-safety', tone: 'bg-gold-500/15 text-gold-600 dark:text-gold-400' },
+  { step: 2, label: 'Belum Penginputan FSO', icon: 'fa-keyboard', tone: 'bg-iris-500/15 text-iris-500 dark:text-iris-300' },
+  { step: 3, label: 'Belum Peremajaan AP2T', icon: 'fa-server', tone: 'bg-pink-500/15 text-pink-500 dark:text-pink-400' },
+  { step: 4, label: 'Belum Bayar NIDI & SLO', icon: 'fa-money-check-dollar', tone: 'bg-teal-500/15 text-teal-500 dark:text-teal-300' },
+  { step: 5, label: 'Belum Upload Berkas NIDI', icon: 'fa-file-signature', tone: 'bg-leaf-500/15 text-leaf-600 dark:text-leaf-400' },
 ];
 
 export const dashboard = {
@@ -48,7 +48,7 @@ export const dashboard = {
         <h2 class="text-lg font-extrabold text-slate-900 dark:text-white md:text-xl">Dashboard</h2>
         <p class="text-sm text-slate-500 dark:text-slate-400">Ringkasan kas dan monitoring progres permohonan.</p>
       </div>
-      <div data-metrics class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"></div>
+      <div data-metrics class="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"></div>
       <div class="mb-6 grid gap-4 lg:grid-cols-3">
         <div class="card p-4 lg:col-span-2">
           <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -155,7 +155,7 @@ export const dashboard = {
       (s) => `
       <div role="button" tabindex="0" data-action="nidi-tanda:${s.key}"
         class="card flex cursor-pointer flex-col gap-2 p-3.5 transition-all hover:-translate-y-0.5 hover:shadow-card-hover">
-        <div class="grid h-9 w-9 place-items-center rounded-lg text-sm ${s.tone}"><i class="fa-solid ${s.icon}"></i></div>
+        <div class="grid h-9 w-9 place-items-center rounded-xl text-sm ${s.tone}"><i class="fa-solid ${s.icon}"></i></div>
         <div>
           <p class="text-[11px] font-semibold leading-tight text-slate-500 dark:text-slate-400">${s.label}</p>
           <p class="text-lg font-extrabold text-slate-900 dark:text-white">${nidiCount[s.key]} <span class="text-xs font-normal text-slate-400">permohonan</span></p>
@@ -171,8 +171,8 @@ export const dashboard = {
         label: 'Kas yang Dapat Digunakan',
         value: formatRp(kasDapatDigunakan),
         icon: 'fa-sack-dollar',
-        tone: 'amber',
-        sub: `Saldo − Titip NIDI+SLO (${formatRp(nidiRp.titip)})`,
+        tone: 'iris',
+        sub: `− Titipan NIDI+SLO ${formatRp(nidiRp.titip)}`,
       }),
       statCard({ label: 'Menunggu Pembayaran', value: `${waiting} berkas`, icon: 'fa-clock', tone: 'gold', onClick: 'wait' }),
       statCard({ label: 'Permohonan Lunas', value: `${lunas} berkas`, icon: 'fa-file-circle-check', tone: 'leaf', onClick: 'lunas' }),
@@ -186,17 +186,17 @@ export const dashboard = {
     this.el.querySelector('[data-today]').innerHTML = `
       <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Hari Ini</p>
       <div class="flex items-center gap-3">
-        <div class="grid h-10 w-10 place-items-center rounded-lg bg-leaf-500/15 text-leaf-600"><i class="fa-solid fa-arrow-down"></i></div>
+        <div class="grid h-10 w-10 place-items-center rounded-xl bg-leaf-500/15 text-leaf-600"><i class="fa-solid fa-arrow-down"></i></div>
         <div><p class="text-lg font-extrabold text-slate-900 dark:text-white">${formatRp(masukToday)}</p><p class="text-[11px] text-slate-400">Kas masuk</p></div>
       </div>
       <div class="flex items-center gap-3">
-        <div class="grid h-10 w-10 place-items-center rounded-lg bg-pln-500/15 text-pln-600"><i class="fa-solid fa-file-signature"></i></div>
+        <div class="grid h-10 w-10 place-items-center rounded-xl bg-pln-500/15 text-pln-600"><i class="fa-solid fa-file-signature"></i></div>
         <div><p class="text-lg font-extrabold text-slate-900 dark:text-white">${permToday}</p><p class="text-[11px] text-slate-400">Permohonan baru</p></div>
       </div>
       <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
       <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Saving Loket</p>
       <div role="button" tabindex="0" data-action="saving:ada" class="flex cursor-pointer items-center gap-3 rounded-lg -mx-1 px-1 py-0.5 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60">
-        <div class="grid h-10 w-10 place-items-center rounded-lg bg-leaf-500/15 text-leaf-600"><i class="fa-solid fa-piggy-bank"></i></div>
+        <div class="grid h-10 w-10 place-items-center rounded-xl bg-leaf-500/15 text-leaf-600"><i class="fa-solid fa-piggy-bank"></i></div>
         <div>
           <p class="text-lg font-extrabold text-slate-900 dark:text-white">${adaSaving}</p>
           <p class="text-[11px] text-slate-400">Ada saving loket</p>
@@ -204,7 +204,7 @@ export const dashboard = {
         </div>
       </div>
       <div role="button" tabindex="0" data-action="saving:tanpa" class="flex cursor-pointer items-center gap-3 rounded-lg -mx-1 px-1 py-0.5 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60">
-        <div class="grid h-10 w-10 place-items-center rounded-lg bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-300"><i class="fa-solid fa-piggy-bank"></i></div>
+        <div class="grid h-10 w-10 place-items-center rounded-xl bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-300"><i class="fa-solid fa-piggy-bank"></i></div>
         <div>
           <p class="text-lg font-extrabold text-slate-900 dark:text-white">${tanpaSaving}</p>
           <p class="text-[11px] text-slate-400">Tanpa saving loket</p>
@@ -216,12 +216,12 @@ export const dashboard = {
     this.el.querySelector('[data-pipeline]').innerHTML = PIPE.map(
       (s) => `
       <div role="button" tabindex="0" data-action="step:${s.step}"
-        class="card flex h-24 cursor-pointer flex-col justify-between border-l-4 ${s.color} p-3 transition-all hover:-translate-y-0.5 hover:shadow-card-hover">
-        <p class="text-[11px] font-semibold leading-tight text-slate-600 dark:text-slate-300">${s.label}</p>
-        <div class="flex items-end justify-between">
-          <span class="text-2xl font-extrabold text-slate-900 dark:text-white">${counts[s.step]}</span>
-          <i class="fa-solid ${s.icon} text-xl text-slate-200 dark:text-slate-700"></i>
+        class="card flex h-24 cursor-pointer flex-col justify-between p-3.5 transition-all hover:-translate-y-0.5 hover:shadow-card-hover">
+        <div class="flex items-center justify-between">
+          <div class="grid h-8 w-8 place-items-center rounded-xl text-xs ${s.tone}"><i class="fa-solid ${s.icon}"></i></div>
+          <span class="text-2xl font-extrabold tabular-nums text-slate-900 dark:text-white">${counts[s.step]}</span>
         </div>
+        <p class="text-[11px] font-medium leading-tight text-slate-500 dark:text-slate-400">${s.label}</p>
       </div>`
     ).join('');
 
@@ -401,6 +401,14 @@ export const dashboard = {
 
     const dark = document.documentElement.classList.contains('dark');
     if (chart) chart.destroy();
+    // Gradasi vertikal untuk batang (gaya dashboard modern)
+    const ctx = canvas.getContext('2d');
+    const grad = (from, to) => {
+      const g = ctx.createLinearGradient(0, 0, 0, canvas.clientHeight || 208);
+      g.addColorStop(0, from);
+      g.addColorStop(1, to);
+      return g;
+    };
     chart = new window.Chart(canvas, {
       type: 'bar',
       data: {
@@ -409,16 +417,20 @@ export const dashboard = {
           {
             label: 'Saving Loket',
             data: savingBuckets,
-            backgroundColor: '#22a06b',
-            borderRadius: 6,
-            maxBarThickness: 32,
+            backgroundColor: grad('#34d399', 'rgba(34, 160, 107, 0.55)'),
+            hoverBackgroundColor: grad('#6ee7b7', 'rgba(34, 160, 107, 0.75)'),
+            borderRadius: 10,
+            borderSkipped: false,
+            maxBarThickness: 30,
           },
           {
             label: 'Tarik Kas',
             data: tarikBuckets,
-            backgroundColor: '#e8a33d',
-            borderRadius: 6,
-            maxBarThickness: 32,
+            backgroundColor: grad('#fbbf24', 'rgba(232, 163, 61, 0.5)'),
+            hoverBackgroundColor: grad('#fcd34d', 'rgba(232, 163, 61, 0.7)'),
+            borderRadius: 10,
+            borderSkipped: false,
+            maxBarThickness: 30,
           },
         ],
       },
@@ -427,13 +439,30 @@ export const dashboard = {
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${formatRp(c.raw)}` } },
+          tooltip: {
+            backgroundColor: dark ? 'rgba(11, 15, 28, .95)' : 'rgba(255,255,255,.98)',
+            titleColor: dark ? '#e2e8f0' : '#0f172a',
+            bodyColor: dark ? '#cbd5e1' : '#334155',
+            borderColor: dark ? 'rgba(255,255,255,.1)' : '#e2e8f0',
+            borderWidth: 1,
+            padding: 10,
+            cornerRadius: 12,
+            displayColors: true,
+            boxPadding: 4,
+            usePointStyle: true,
+            callbacks: { label: (c) => ` ${c.dataset.label}: ${formatRp(c.raw)}` },
+          },
         },
         scales: {
-          x: { grid: { display: false }, ticks: { color: dark ? '#94a3b8' : '#64748b' } },
+          x: {
+            grid: { display: false },
+            border: { display: false },
+            ticks: { color: dark ? '#8b93ad' : '#64748b', font: { weight: '600' } },
+          },
           y: {
-            grid: { color: dark ? '#1e293b' : '#e2e8f0' },
-            ticks: { color: dark ? '#94a3b8' : '#64748b', callback: (v) => formatRpShort(v) },
+            grid: { color: dark ? 'rgba(255,255,255,.05)' : '#eef1f6' },
+            border: { display: false },
+            ticks: { color: dark ? '#8b93ad' : '#64748b', callback: (v) => formatRpShort(v) },
           },
         },
       },

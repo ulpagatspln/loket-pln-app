@@ -20,6 +20,14 @@ export default {
           950: '#0e2138',
         },
         sky2: '#00AEEF', // biru muda PLN (aksen)
+        // Aksen ungu untuk gradasi & highlight (gaya dashboard modern)
+        iris: {
+          300: '#b9a8ff',
+          400: '#9d85ff',
+          500: '#7c5cfc',
+          600: '#6a45ec',
+          700: '#5733c9',
+        },
         gold: {
           400: '#FDB913',
           500: '#F7A600', // kuning PLN
@@ -30,9 +38,19 @@ export default {
           500: '#8CC63F', // hijau PLN
           600: '#6fa32f',
         },
+        // Ujung gelap skala slate di-remap ke nuansa navy dashboard.
+        // Semua komponen memakai slate-700/800/900, jadi satu perubahan di sini
+        // menyeragamkan seluruh tampilan gelap (kartu, modal, tabel, input).
+        slate: {
+          600: '#3d4864',
+          700: '#2b3449',
+          800: '#1b2235',
+          900: '#121829', // permukaan kartu / sidebar / topbar
+          950: '#0b0f1c',
+        },
         surface: {
-          light: '#f5f7fa',
-          dark: '#0f172a',
+          light: '#f4f6fb',
+          dark: '#080b14', // latar halaman (lebih gelap dari kartu)
         },
       },
       fontFamily: {
@@ -42,10 +60,21 @@ export default {
         card: '0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04)',
         'card-hover': '0 8px 24px -6px rgba(15, 23, 42, 0.12)',
         pop: '0 20px 45px -12px rgba(15, 23, 42, 0.28)',
+        'glow-pln': '0 10px 26px -10px rgba(27, 117, 187, 0.75)',
+        'glow-iris': '0 10px 26px -10px rgba(124, 92, 252, 0.75)',
+        'glow-leaf': '0 10px 26px -10px rgba(140, 198, 63, 0.7)',
+        'glow-gold': '0 10px 26px -10px rgba(247, 166, 0, 0.7)',
       },
       borderRadius: {
-        xl: '0.875rem',
-        '2xl': '1.125rem',
+        xl: '0.9rem',
+        '2xl': '1.25rem',
+        '3xl': '1.75rem',
+      },
+      backgroundImage: {
+        'grad-pln': 'linear-gradient(135deg, #1B75BB 0%, #7c5cfc 100%)',
+        'grad-iris': 'linear-gradient(135deg, #7c5cfc 0%, #4f8dfd 100%)',
+        'grad-leaf': 'linear-gradient(135deg, #8CC63F 0%, #22c58a 100%)',
+        'grad-gold': 'linear-gradient(135deg, #F7A600 0%, #fb7185 100%)',
       },
       keyframes: {
         'fade-in': { from: { opacity: 0 }, to: { opacity: 1 } },
