@@ -115,6 +115,11 @@ di daftar harga (`hargaTotalUntuk()` di `src/lib/harga.js`): **Pas** (hijau), **
 saat import (mengisi permohonan yang cocok) atau diisi manual di form. Badge tidak muncul bila
 kombinasi daya tidak ada di daftar harga.
 
+**Dashboard** — kartu "Hari Ini" punya bagian **"Biaya vs Daftar Harga"**: jumlah permohonan
+yang total biayanya **di bawah** total daftar harga (logika sama dengan badge "Kurang";
+permohonan yang kombinasi dayanya tidak ada di daftar harga tidak dihitung), lengkap dengan
+rincian per jenis (PB/TD). Klik → daftar permohonan terfilter (`filters.biaya = 'kurang'`).
+
 ### Biaya NIDI+SLO — tabel terpisah
 
 Koleksi Firestore **`nidiSlo`** (doc id = daya, field `nidiSlo`) — tabel harga NIDI+SLO
@@ -127,8 +132,7 @@ Daftar Harga (editable + tambah/hapus baris). Seed: `DEFAULT_NIDI_SLO` di `src/l
 - **Tambah Daya** → hanya bila `daya > 11.000` (1 fasa → 3 fasa)
 
 Baris NIDI+SLO aktif dipegang di modul `harga.js` (`setNidiSloRows()` dari `store.js`) supaya
-`nidiSloWajib(p)` tidak perlu argumen. Dipakai di `rincianDana()` untuk `alokNidi` + penanda
-"Belum ada biaya NIDI+SLO".
+`nidiSloWajib(p)` tidak perlu argumen. Dipakai di `rincianDana()` untuk menghitung `alokNidi`.
 
 ### Penanda NIDI+SLO (manual)
 
@@ -161,8 +165,9 @@ dari daftar harga), sisanya = **Saving Loket**.
   alokasi yang belum dibayar, dan Saving Loket. Angka negatif ditampilkan `−Rp X`.
 - **Saving negatif → dianggap Rp 0** ("tidak ada saving"). `rincianDana` mengembalikan
   `saving` (di-clamp ≥ 0) dan `savingRaw` (nilai asli, untuk catatan "dana kurang …").
-- Bila **Pasang Baru**, **Sisa di loket ≤ 0**, dan **NIDI+SLO belum dibayar** → muncul
-  peringatan **"Belum ada biaya NIDI+SLO"** (di kotak ringkas & di modal Progres).
+- Peringatan kuning "Belum ada biaya NIDI+SLO" (dulu muncul saat sisa loket ≤ 0 & NIDI+SLO
+  belum dibayar) **sudah dihapus** atas permintaan petugas — informasinya sudah terwakili
+  penanda NIDI+SLO manual + catatan kecil "dana kurang …" di modal Progres.
 - **Dashboard** — kartu "Hari Ini" juga menampilkan jumlah permohonan **Ada saving loket**
   (`saving > 0`) dan **Tanpa saving loket** (`saving ≤ 0`), dihitung dari semua permohonan yang
   sudah ada pembayaran masuk (`rincianDana()` tidak `null`), dengan sub-rincian jumlah per jenis

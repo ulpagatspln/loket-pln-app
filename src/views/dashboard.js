@@ -1,6 +1,6 @@
 import { state, calculateSaldo, gvBelumMasuk } from '../store.js';
 import { formatRp, formatRpShort, formatDate, MONTHS, esc } from '../lib/format.js';
-import { nidiSloWajib, rincianDana } from '../lib/harga.js';
+import { nidiSloWajib, rincianDana, hargaTotalUntuk } from '../lib/harga.js';
 import { NIDI_TANDA } from '../ui/nidiTanda.js';
 import { statCard, skeletonCards } from '../ui/components.js';
 import { toast } from '../ui/toast.js';
@@ -127,9 +127,10 @@ export const dashboard = {
     const counts = [0, 0, 0, 0, 0, 0];
     const nidiCount = { titip: 0, tidak_titip: 0, tidak_perlu: 0, dibayar: 0, kosong: 0 };
     const nidiRp = { titip: 0, tidak_titip: 0 };
-    let adaSaving = 0, tanpaSaving = 0;
+    let adaSaving = 0, tanpaSaving = 0, kurangBayar = 0;
     const adaSavingJenis = { 'Pasang Baru': 0, 'Tambah Daya': 0 };
     const tanpaSavingJenis = { 'Pasang Baru': 0, 'Tambah Daya': 0 };
+    const kurangJenis = { 'Pasang Baru': 0, 'Tambah Daya': 0 };
     for (const p of state.permohonan) {
       if (p.status === 'Menunggu Pembayaran') waiting++;
       if (p.status === 'Lunas' || p.status === 'Selesai') lunas++;
@@ -148,6 +149,13 @@ export const dashboard = {
           tanpaSaving++;
           if (tanpaSavingJenis[p.jenis] != null) tanpaSavingJenis[p.jenis]++;
         }
+      }
+
+      // Total biaya pelanggan di bawah Total daftar harga (sama seperti badge "Kurang")
+      const h = hargaTotalUntuk(p, state.harga, state.hargaTd);
+      if (h && Number(p.biaya || 0) < h.total) {
+        kurangBayar++;
+        if (kurangJenis[p.jenis] != null) kurangJenis[p.jenis]++;
       }
     }
 
@@ -209,6 +217,16 @@ export const dashboard = {
           <p class="text-lg font-extrabold text-slate-900 dark:text-white">${tanpaSaving}</p>
           <p class="text-[11px] text-slate-400">Tanpa saving loket</p>
           <p class="text-[10px] text-slate-400">PB ${tanpaSavingJenis['Pasang Baru']} · TD ${tanpaSavingJenis['Tambah Daya']}</p>
+        </div>
+      </div>
+      <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
+      <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Biaya vs Daftar Harga</p>
+      <div role="button" tabindex="0" data-action="biaya:kurang" class="flex cursor-pointer items-center gap-3 rounded-lg -mx-1 px-1 py-0.5 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60">
+        <div class="grid h-10 w-10 place-items-center rounded-xl bg-red-500/15 text-red-500 dark:text-red-400"><i class="fa-solid fa-arrow-down"></i></div>
+        <div>
+          <p class="text-lg font-extrabold text-slate-900 dark:text-white">${kurangBayar}</p>
+          <p class="text-[11px] text-slate-400">Kurang dari daftar harga</p>
+          <p class="text-[10px] text-slate-400">PB ${kurangJenis['Pasang Baru']} · TD ${kurangJenis['Tambah Daya']}</p>
         </div>
       </div>`;
 
@@ -480,6 +498,7 @@ function onCardClick(e) {
   else if (a.startsWith('open-perm:')) goToPermohonan({ q: a.split(':')[1] });
   else if (a.startsWith('nidi-tanda:')) goToPermohonan({ nidiTanda: a.split(':')[1] });
   else if (a.startsWith('saving:')) goToPermohonan({ saving: a.split(':')[1] });
+  else if (a.startsWith('biaya:')) goToPermohonan({ biaya: a.split(':')[1] });
   else if (a.startsWith('new-from-gv:')) {
     const noAgenda = a.slice('new-from-gv:'.length);
     const row = state.gvAgenda.find((r) => String(r.noAgenda) === noAgenda);

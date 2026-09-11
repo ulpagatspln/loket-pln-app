@@ -333,13 +333,6 @@ function rincianDanaHtml(p) {
     ? `<p class="mt-1.5 text-[10px] italic text-slate-400">Dana kurang ${formatRp(-d.savingRaw)} untuk menutup alokasi — saving dianggap Rp 0.</p>`
     : '';
 
-  const warnNidi = d.nidiSlo > 0 && d.nidiBelum && d.sisa <= 0;
-  const warn = warnNidi
-    ? `<div class="mt-1.5 flex items-center gap-2 rounded-lg bg-amber-100 px-2.5 py-2 text-xs font-bold text-amber-700 dark:bg-amber-950/50 dark:text-amber-400">
-         <i class="fa-solid fa-triangle-exclamation"></i> Belum ada biaya NIDI+SLO — dana di loket tidak cukup, perlu tarik biaya NIDI+SLO dari pelanggan.
-       </div>`
-    : '';
-
   return `
     <div class="mb-4 rounded-xl border border-slate-200 p-3 dark:border-slate-700">
       <p class="mb-1 text-xs font-bold text-slate-800 dark:text-slate-100"><i class="fa-solid fa-wallet text-pln-500"></i> Rincian Dana Loket</p>
@@ -348,7 +341,6 @@ function rincianDanaHtml(p) {
       <div class="mt-1.5 flex items-center justify-between rounded-lg px-2.5 py-2 text-sm font-extrabold ${savingBox}">
         <span>Saving Loket</span><span class="tabular-nums">${ada ? formatRp(d.saving) : 'Rp 0 · tidak ada saving'}</span>
       </div>
-      ${warn}
       ${note}
     </div>`;
 }

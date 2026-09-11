@@ -26,12 +26,13 @@ let filters = {
   step: 'All',
   nidiTanda: 'All', // 'titip' | 'tidak_titip' | 'tidak_perlu' | 'dibayar' | 'kosong' | 'All'
   saving: 'All', // 'ada' | 'tanpa' | 'All'
+  biaya: 'All', // 'kurang' (total biaya < total daftar harga) | 'All'
 };
 
 export function goToPermohonan(overrides = {}) {
   filters = {
     q: '', month: 'All', year: 'All', jenis: 'All', status: 'All', step: 'All',
-    nidiTanda: 'All', saving: 'All', ...overrides,
+    nidiTanda: 'All', saving: 'All', biaya: 'All', ...overrides,
   };
   page = 1;
   window.dispatchEvent(new CustomEvent('navigate', { detail: 'permohonan' }));
@@ -65,7 +66,16 @@ function getFiltered() {
         if (!dd) return false;
         return filters.saving === 'ada' ? dd.saving > 0 : dd.saving <= 0;
       })();
-      return matchQ && matchStatus && matchStep && matchMonth && matchYear && matchJenis && matchNidiTanda && matchSaving;
+      const matchBiaya = (() => {
+        if (filters.biaya === 'All') return true;
+        const h = hargaTotalUntuk(p, state.harga, state.hargaTd);
+        if (!h) return false;
+        return Number(p.biaya || 0) < h.total;
+      })();
+      return (
+        matchQ && matchStatus && matchStep && matchMonth && matchYear && matchJenis &&
+        matchNidiTanda && matchSaving && matchBiaya
+      );
     })
     .sort((a, b) => new Date(b.date) - new Date(a.date));
 }
@@ -101,12 +111,7 @@ const rincianMini = (p) => {
     d.saving > 0 ? formatRp(d.saving) : 'Rp 0 (tidak ada)',
     'font-bold ' + (d.saving > 0 ? 'text-leaf-700 dark:text-leaf-400' : 'text-slate-400')
   );
-  // Pasang Baru, NIDI+SLO belum dibayar, dan sisa loket habis/minus
-  const warnNidi = d.nidiSlo > 0 && d.nidiBelum && d.sisa <= 0;
-  const warn = warnNidi
-    ? `<div class="mt-1 flex items-center gap-1.5 rounded bg-amber-100 px-2 py-1 text-[11px] font-bold text-amber-700 dark:bg-amber-950/50 dark:text-amber-400"><i class="fa-solid fa-triangle-exclamation"></i> Belum ada biaya NIDI+SLO</div>`
-    : '';
-  return `<div class="mt-1.5 min-w-[170px] space-y-0.5 rounded-lg border border-slate-200 bg-slate-50/70 px-2.5 py-1.5 text-[11px] text-slate-500 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-400">${rows}${warn}</div>`;
+  return `<div class="mt-1.5 min-w-[170px] space-y-0.5 rounded-lg border border-slate-200 bg-slate-50/70 px-2.5 py-1.5 text-[11px] text-slate-500 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-400">${rows}</div>`;
 };
 
 function gvBadges(p, cls = 'mt-1.5') {
@@ -296,6 +301,7 @@ export const permohonan = {
     if (filters.saving !== 'All') {
       c.push(filterChip(filters.saving === 'ada' ? 'Ada saving loket' : 'Tanpa saving loket', 'saving'));
     }
+    if (filters.biaya !== 'All') c.push(filterChip('Kurang dari daftar harga', 'biaya'));
     chips.innerHTML = c.join('');
 
     if (!state.ready) {
