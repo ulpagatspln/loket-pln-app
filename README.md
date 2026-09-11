@@ -41,8 +41,9 @@ src/
     modal.js          openModal (bottom-sheet di mobile) + confirmDialog
     adminGate.js      requireAdmin(password) untuk edit/hapus
     components.js     statCard, emptyState, skeleton, filterChip, input Rupiah
+    nidiTanda.js      Penanda NIDI+SLO manual per permohonan (chip + pemilih)
   views/
-    dashboard.js      Metrik, grafik 6 bulan, ringkasan hari ini, antrean pekerjaan, import GV
+    dashboard.js      Metrik, grafik saving & tarik kas 6 bulan, ringkasan hari ini, antrean pekerjaan, import GV
     permohonan.js     Daftar (tabel desktop / kartu mobile), filter, PDF, bayar, salin WA
     permForm.js       Form tambah/edit 2 langkah
     progress.js       Timeline 6 tahap + input biaya/link/agenda/pemasang
@@ -95,10 +96,10 @@ Menu **Daftar Harga** (tab ke-4) dengan 2 sub-tab:
   Koleksi `hargaTambahDaya` (doc id = `<sebelum>-<sesudah>`). Kolom **NIDI + SLO** sengaja
   kosong: hanya berlaku bila tambah daya 1 fasa → 3 fasa; admin isi per baris lewat tombol edit.
 
-Tiap sub-tab punya **kalkulator cepat** (pilih daya/golongan → ringkasan biaya). Bila koleksi
-kosong tampil data bawaan dari `src/lib/harga.js` + tombol **"Simpan ke Database"** (admin).
-Tiap baris bisa diedit admin (ikon pensil). Kolom kiri (Daya/Daya Sebelum) dibekukan saat
-tabel di-scroll di HP.
+3 sub-tab: **Pasang Baru**, **Tambah Daya**, **NIDI + SLO**. Tiap tabel harga punya
+**kalkulator cepat**; bila koleksi kosong tampil data bawaan + tombol **"Simpan ke Database"**
+(admin). Baris bisa diedit admin (ikon pensil). Tabel NIDI+SLO bisa **tambah / hapus** baris.
+Kolom kiri (Daya/Daya Sebelum) dibekukan saat tabel di-scroll di HP.
 
 Angka **BP/PD & Total** = tabel PLN **dikurangi Rp 100.000** (loket tidak menyertakan token
 100rb). `PB_RAW` / `td()` di `src/lib/harga.js` menyimpan nilai mentah lalu memotong 100rb di
@@ -114,6 +115,40 @@ di daftar harga (`hargaTotalUntuk()` di `src/lib/harga.js`): **Pas** (hijau), **
 saat import (mengisi permohonan yang cocok) atau diisi manual di form. Badge tidak muncul bila
 kombinasi daya tidak ada di daftar harga.
 
+### Biaya NIDI+SLO — tabel terpisah
+
+Koleksi Firestore **`nidiSlo`** (doc id = daya, field `nidiSlo`) — tabel harga NIDI+SLO
+per daya, terpisah dari daftar harga, ditampilkan sebagai sub-tab **"NIDI + SLO"** di menu
+Daftar Harga (editable + tambah/hapus baris). Seed: `DEFAULT_NIDI_SLO` di `src/lib/harga.js`
+(22 daya, 900–197.000) → `node scripts/seed-nidislo.mjs`.
+
+`nidiSloWajib(p)` (`src/lib/harga.js`): baca dari tabel `nidiSlo` sesuai daya —
+- **Pasang Baru** → selalu
+- **Tambah Daya** → hanya bila `daya > 11.000` (1 fasa → 3 fasa)
+
+Baris NIDI+SLO aktif dipegang di modul `harga.js` (`setNidiSloRows()` dari `store.js`) supaya
+`nidiSloWajib(p)` tidak perlu argumen. Dipakai di `rincianDana()` untuk `alokNidi` + penanda
+"Belum ada biaya NIDI+SLO".
+
+### Penanda NIDI+SLO (manual)
+
+Field `nidiTanda` di dok permohonan, diisi manual per permohonan (dicek satu per satu).
+Nilai: `titip` / `tidak_titip` / `tidak_perlu` / `dibayar` (`src/ui/nidiTanda.js` → `NIDI_TANDA`).
+Chip `nidiTandaChip()` tampil di daftar permohonan & header modal Progres — klik untuk
+membuka pemilih (`openNidiTandaPicker`).
+
+**Otomatis**: saat tahap "Pembayaran NIDI & SLO" (step 4) selesai, penanda `titip`
+diubah jadi `dibayar` ("NIDI+SLO Sudah Dibayar Loket") di `completeStepWithCost()`.
+
+**Dashboard** — bagian "Penanda NIDI+SLO": 5 kartu (jumlah permohonan per status: Titip,
+Tidak Ada Titip, Tidak Perlu, Sudah Dibayar Loket, Belum Ditandai). Titip & Tidak Ada Titip
+juga menampilkan total rupiah (`nidiSloWajib(p)` dijumlah). Klik kartu → daftar permohonan
+terfilter (`filters.nidiTanda`, permohonan.js).
+
+**Kartu "Kas yang Dapat Digunakan"** (di sebelah Total Saldo Kas, 4 kartu metrik) =
+Total Saldo Kas − total rupiah Titip NIDI+SLO — dana Titip NIDI+SLO dianggap "titipan"
+pelanggan, bukan kas bebas pakai loket. Di-clamp minimal Rp 0.
+
 ### Rincian Dana Loket
 
 `rincianDana()` di `src/lib/harga.js` menghitung alur dana per permohonan (bila sudah ada
@@ -128,15 +163,22 @@ dari daftar harga), sisanya = **Saving Loket**.
   `saving` (di-clamp ≥ 0) dan `savingRaw` (nilai asli, untuk catatan "dana kurang …").
 - Bila **Pasang Baru**, **Sisa di loket ≤ 0**, dan **NIDI+SLO belum dibayar** → muncul
   peringatan **"Belum ada biaya NIDI+SLO"** (di kotak ringkas & di modal Progres).
-- **Dashboard** — 3 kartu turunan (jumlah permohonan + total rupiah, klik → daftar terfilter):
-  - **Pasang Baru Biaya Rp 1** (`biaya ≤ 1`, + total biaya NIDI+SLO) → filter `biaya1`
-  - **Dana NIDI+SLO di Loket** (`danaNidiDiLoket()` > 0: Pasang Baru, NIDI+SLO belum dibayar,
-    **saving loket > 0** — dana pelanggan cukup menutup semua alokasi → nilai = `alokNidi`)
-    → filter `nidiHold`
-  - **Permohonan Kurang Bayar** (`kekuranganBiaya()` > 0: `biaya < Total daftar harga`, +
-    total kekurangan) → filter `kurang`
-  - **Tanpa Saving Loket** (`tanpaSavingLoket()`: sudah dibayar tapi `saving = 0`; jumlah
-    permohonan saja) → filter `noSaving`
+- **Dashboard** — kartu "Hari Ini" juga menampilkan jumlah permohonan **Ada saving loket**
+  (`saving > 0`) dan **Tanpa saving loket** (`saving ≤ 0`), dihitung dari semua permohonan yang
+  sudah ada pembayaran masuk (`rincianDana()` tidak `null`), dengan sub-rincian jumlah per jenis
+  (Pasang Baru / Tambah Daya). Klik → daftar permohonan terfilter (`filters.saving`,
+  permohonan.js).
+
+### Grafik dashboard — Saving Loket & Tarik Kas
+
+Grafik batang 6 bulan terakhir di Dashboard (sebelumnya "Kas Masuk") menampilkan 2 seri
+per bulan, dihitung dari koleksi `kas`:
+
+- **Saving Loket** (hijau) = Kas Masuk (tipe `Pemasukan`) bulan itu − Pengeluaran terkait
+  proyek (PPOB/Pemasangan/NIDI-SLO, tipe selain `Pemasukan`/`Penarikan`) bulan itu,
+  di-clamp minimal Rp 0. Ini arus kas bulanan, beda dari `rincianDana()` per permohonan
+  (yang juga memperhitungkan alokasi biaya yang belum dibayar).
+- **Tarik Kas** (kuning) = total transaksi tipe `Penarikan` bulan itu.
 
 ## Catatan keamanan
 

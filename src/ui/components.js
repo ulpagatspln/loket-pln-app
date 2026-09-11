@@ -48,7 +48,7 @@ export const skeletonRows = (n = 5) =>
     .join('');
 
 export const skeletonCards = (n = 3) =>
-  `<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">${Array.from({ length: n })
+  `<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">${Array.from({ length: n })
     .map(() => `<div class="card p-4"><div class="skeleton mb-3 h-12 w-12 rounded-xl"></div><div class="skeleton mb-2 h-3 w-1/2"></div><div class="skeleton h-5 w-2/3"></div></div>`)
     .join('')}</div>`;
 

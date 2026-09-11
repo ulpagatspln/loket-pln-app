@@ -1,8 +1,10 @@
 import {
-  permCol, kasCol, gvCol, hargaCol, hargaTdCol, permDoc, kasDoc, hargaDoc, hargaTdDoc,
+  permCol, kasCol, gvCol, hargaCol, hargaTdCol, nidiSloCol,
+  permDoc, kasDoc, hargaDoc, hargaTdDoc, nidiSloDoc,
   setDoc, deleteDoc, onSnapshot, connectAnonymously,
 } from './firebase.js';
 import { generateId } from './lib/format.js';
+import { setNidiSloRows } from './lib/harga.js';
 
 export const GV_META_ID = 'zz-import-meta';
 
@@ -22,6 +24,7 @@ export const state = {
   gvMeta: null, // { lastImportAt, rows, fileName }
   harga: [], // daftar harga pasang baru per daya
   hargaTd: [], // daftar harga tambah daya (matriks sebelum->sesudah)
+  nidiSlo: [], // tabel NIDI+SLO per daya (terpisah dari daftar harga)
   ready: false,
   user: null,
 };
@@ -97,10 +100,36 @@ export async function initStore() {
   });
   subscribe(hargaCol, (rows) => (state.harga = rows));
   subscribe(hargaTdCol, (rows) => (state.hargaTd = rows));
+  subscribe(nidiSloCol, (rows) => {
+    state.nidiSlo = rows;
+    setNidiSloRows(rows);
+  });
+}
+
+export async function saveNidiSloRow(daya, nidiSlo) {
+  await setDoc(
+    nidiSloDoc(daya),
+    { daya: Number(daya), nidiSlo: Number(nidiSlo) || 0, updatedAt: new Date().toISOString() },
+    { merge: true }
+  );
+}
+
+export async function deleteNidiSloRow(daya) {
+  await deleteDoc(nidiSloDoc(daya));
+}
+
+export async function seedNidiSlo(defaults) {
+  for (const row of defaults) {
+    await setDoc(nidiSloDoc(row.daya), { ...row, updatedAt: new Date().toISOString() });
+  }
 }
 
 export async function saveHargaRow(daya, data) {
   await setDoc(hargaDoc(daya), { ...data, daya: Number(daya), updatedAt: new Date().toISOString() }, { merge: true });
+}
+
+export async function deleteHargaRow(daya) {
+  await deleteDoc(hargaDoc(daya));
 }
 
 export async function seedHarga(defaults) {
@@ -214,6 +243,12 @@ export async function completeStepWithCost(id, stepIndex, costName, { cost, link
   if (buktiId) kasData.buktiId = buktiId;
   if (link) kasData.link = link;
   await setDoc(kasDoc(kId), kasData);
+
+  // Tahap bayar NIDI & SLO selesai -> penanda "Titip NIDI+SLO" jadi "Sudah Dibayar Loket"
+  if ((stepIndex === 4 || (costName || '').includes('NIDI')) && p.nidiTanda === 'titip') {
+    await setDoc(permDoc(id), { nidiTanda: 'dibayar' }, { merge: true });
+  }
+
   await advanceStep(id, stepIndex, { agenda, pemasang });
 }
 

@@ -1,6 +1,7 @@
 import { state, calculateSaldo, gvBelumMasuk } from '../store.js';
 import { formatRp, formatRpShort, formatDate, MONTHS, esc } from '../lib/format.js';
-import { hargaTotalUntuk, danaNidiDiLoket, kekuranganBiaya, rincianDana } from '../lib/harga.js';
+import { nidiSloWajib, rincianDana } from '../lib/harga.js';
+import { NIDI_TANDA } from '../ui/nidiTanda.js';
 import { statCard, skeletonCards } from '../ui/components.js';
 import { toast } from '../ui/toast.js';
 import { confirmDialog } from '../ui/modal.js';
@@ -8,6 +9,15 @@ import { goToPermohonan } from './permohonan.js';
 import { openPermForm } from './permForm.js';
 
 let chart;
+
+// Urutan & warna kartu ringkasan penanda NIDI+SLO di dashboard.
+const NIDI_STATUS_ORDER = [
+  { key: 'titip', ...NIDI_TANDA.titip, tone: 'bg-leaf-500/15 text-leaf-600', withRp: true },
+  { key: 'tidak_titip', ...NIDI_TANDA.tidak_titip, tone: 'bg-amber-100 text-amber-600 dark:bg-amber-950/40', withRp: true },
+  { key: 'tidak_perlu', ...NIDI_TANDA.tidak_perlu, tone: 'bg-slate-200 text-slate-500 dark:bg-slate-700', withRp: false },
+  { key: 'dibayar', ...NIDI_TANDA.dibayar, tone: 'bg-pln-500/15 text-pln-600', withRp: false },
+  { key: 'kosong', label: 'Belum Ditandai', icon: 'fa-circle-question', tone: 'bg-slate-100 text-slate-400 dark:bg-slate-800', withRp: false },
+];
 
 const PIPE = [
   { step: 0, label: 'Belum Pembayaran PPOB', icon: 'fa-money-bill-transfer', color: 'border-pln-500' },
@@ -27,12 +37,15 @@ export const dashboard = {
         <h2 class="text-lg font-extrabold text-slate-900 dark:text-white md:text-xl">Dashboard</h2>
         <p class="text-sm text-slate-500 dark:text-slate-400">Ringkasan kas dan monitoring progres permohonan.</p>
       </div>
-      <div data-metrics class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
+      <div data-metrics class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"></div>
       <div class="mb-6 grid gap-4 lg:grid-cols-3">
         <div class="card p-4 lg:col-span-2">
-          <div class="mb-3 flex items-center justify-between">
-            <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">Pemasukan 6 Bulan Terakhir</h3>
-            <span class="badge badge-blue"><i class="fa-solid fa-chart-column"></i> Kas Masuk</span>
+          <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">Saving &amp; Tarik Kas <span class="font-normal text-slate-400">— 6 Bln</span></h3>
+            <div class="flex items-center gap-1.5">
+              <span class="badge badge-green"><i class="fa-solid fa-piggy-bank"></i> Saving Loket</span>
+              <span class="badge badge-amber"><i class="fa-solid fa-money-bill-wave"></i> Tarik Kas</span>
+            </div>
           </div>
           <div class="h-52"><canvas data-chart></canvas></div>
         </div>
@@ -45,6 +58,13 @@ export const dashboard = {
         <span class="text-xs text-slate-400">Lunas &amp; belum dikerjakan</span>
       </div>
       <div data-pipeline class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6"></div>
+
+      <div class="mb-3 flex items-center gap-2">
+        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">
+          <i class="fa-solid fa-tag text-pln-500"></i> Penanda NIDI+SLO
+        </h3>
+      </div>
+      <div data-nidi-status class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"></div>
 
       <div class="card p-4">
         <div class="flex flex-wrap items-start justify-between gap-3">
@@ -68,6 +88,8 @@ export const dashboard = {
       if (e.key === 'Enter' || e.key === ' ') onCardClick(e);
     });
     el.querySelector('[data-pipeline]').addEventListener('click', onCardClick);
+    el.querySelector('[data-nidi-status]').addEventListener('click', onCardClick);
+    el.querySelector('[data-today]').addEventListener('click', onCardClick);
     el.querySelector('[data-gv-file]').addEventListener('change', (e) => this.onGvFile(e.target));
     const gvList = el.querySelector('[data-gv-list]');
     gvList.addEventListener('click', onCardClick);
@@ -81,69 +103,63 @@ export const dashboard = {
   refresh() {
     if (!this.el) return;
     if (!state.ready) {
-      this.el.querySelector('[data-metrics]').innerHTML = skeletonCards(7);
+      this.el.querySelector('[data-metrics]').innerHTML = skeletonCards(4);
       return;
     }
     const saldo = calculateSaldo();
     let waiting = 0, lunas = 0;
-    let pb1Count = 0, pb1Nidi = 0;
-    let nidiHoldCount = 0, nidiHoldTotal = 0;
-    let kurangCount = 0, kurangTotal = 0;
-    let noSavingCount = 0;
     const counts = [0, 0, 0, 0, 0, 0];
+    const nidiCount = { titip: 0, tidak_titip: 0, tidak_perlu: 0, dibayar: 0, kosong: 0 };
+    const nidiRp = { titip: 0, tidak_titip: 0 };
+    let adaSaving = 0, tanpaSaving = 0;
+    const adaSavingJenis = { 'Pasang Baru': 0, 'Tambah Daya': 0 };
+    const tanpaSavingJenis = { 'Pasang Baru': 0, 'Tambah Daya': 0 };
     for (const p of state.permohonan) {
       if (p.status === 'Menunggu Pembayaran') waiting++;
       if (p.status === 'Lunas' || p.status === 'Selesai') lunas++;
       if (p.status === 'Lunas' && p.step >= 0 && p.step < 6) counts[p.step]++;
-      if (p.jenis === 'Pasang Baru' && Number(p.biaya) <= 1) {
-        pb1Count++;
-        const h = hargaTotalUntuk(p, state.harga, state.hargaTd);
-        if (h) pb1Nidi += h.row.nidiSlo || 0;
-      }
-      const nidiHold = danaNidiDiLoket(p, state.kas, state.harga, state.hargaTd);
-      if (nidiHold > 0) { nidiHoldCount++; nidiHoldTotal += nidiHold; }
-      const kurang = kekuranganBiaya(p, state.harga, state.hargaTd);
-      if (kurang > 0) { kurangCount++; kurangTotal += kurang; }
+
+      const key = p.nidiTanda && NIDI_TANDA[p.nidiTanda] ? p.nidiTanda : 'kosong';
+      nidiCount[key]++;
+      if (key === 'titip' || key === 'tidak_titip') nidiRp[key] += nidiSloWajib(p);
 
       const d = rincianDana(p, state.kas, state.harga, state.hargaTd);
-      if (d && d.saving === 0) noSavingCount++;
+      if (d) {
+        if (d.saving > 0) {
+          adaSaving++;
+          if (adaSavingJenis[p.jenis] != null) adaSavingJenis[p.jenis]++;
+        } else {
+          tanpaSaving++;
+          if (tanpaSavingJenis[p.jenis] != null) tanpaSavingJenis[p.jenis]++;
+        }
+      }
     }
 
+    this.el.querySelector('[data-nidi-status]').innerHTML = NIDI_STATUS_ORDER.map(
+      (s) => `
+      <div role="button" tabindex="0" data-action="nidi-tanda:${s.key}"
+        class="card flex cursor-pointer flex-col gap-2 p-3.5 transition-all hover:-translate-y-0.5 hover:shadow-card-hover">
+        <div class="grid h-9 w-9 place-items-center rounded-lg text-sm ${s.tone}"><i class="fa-solid ${s.icon}"></i></div>
+        <div>
+          <p class="text-[11px] font-semibold leading-tight text-slate-500 dark:text-slate-400">${s.label}</p>
+          <p class="text-lg font-extrabold text-slate-900 dark:text-white">${nidiCount[s.key]} <span class="text-xs font-normal text-slate-400">permohonan</span></p>
+          ${s.withRp ? `<p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">${formatRp(nidiRp[s.key])}</p>` : ''}
+        </div>
+      </div>`
+    ).join('');
+
+    const kasDapatDigunakan = Math.max(0, saldo - nidiRp.titip);
     this.el.querySelector('[data-metrics]').innerHTML = [
       statCard({ label: 'Total Saldo Kas', value: formatRp(saldo), icon: 'fa-wallet', tone: 'pln' }),
+      statCard({
+        label: 'Kas yang Dapat Digunakan',
+        value: formatRp(kasDapatDigunakan),
+        icon: 'fa-sack-dollar',
+        tone: 'amber',
+        sub: `Saldo − Titip NIDI+SLO (${formatRp(nidiRp.titip)})`,
+      }),
       statCard({ label: 'Menunggu Pembayaran', value: `${waiting} berkas`, icon: 'fa-clock', tone: 'gold', onClick: 'wait' }),
       statCard({ label: 'Permohonan Lunas', value: `${lunas} berkas`, icon: 'fa-file-circle-check', tone: 'leaf', onClick: 'lunas' }),
-      statCard({
-        label: 'Pasang Baru Biaya Rp 1',
-        value: `${pb1Count} permohonan`,
-        icon: 'fa-circle-exclamation',
-        tone: 'red',
-        sub: `NIDI+SLO: ${formatRp(pb1Nidi)}`,
-        onClick: 'pb1',
-      }),
-      statCard({
-        label: 'Dana NIDI+SLO di Loket',
-        value: `${nidiHoldCount} permohonan`,
-        icon: 'fa-file-invoice-dollar',
-        tone: 'amber',
-        sub: `Belum dibuat: ${formatRp(nidiHoldTotal)}`,
-        onClick: 'nidihold',
-      }),
-      statCard({
-        label: 'Permohonan Kurang Bayar',
-        value: `${kurangCount} permohonan`,
-        icon: 'fa-arrow-trend-down',
-        tone: 'red',
-        sub: `Total kurang: ${formatRp(kurangTotal)}`,
-        onClick: 'kurang',
-      }),
-      statCard({
-        label: 'Tanpa Saving Loket',
-        value: `${noSavingCount} permohonan`,
-        icon: 'fa-piggy-bank',
-        tone: 'red',
-        onClick: 'nosaving',
-      }),
     ].join('');
 
     // Ringkasan hari ini
@@ -160,6 +176,24 @@ export const dashboard = {
       <div class="flex items-center gap-3">
         <div class="grid h-10 w-10 place-items-center rounded-lg bg-pln-500/15 text-pln-600"><i class="fa-solid fa-file-signature"></i></div>
         <div><p class="text-lg font-extrabold text-slate-900 dark:text-white">${permToday}</p><p class="text-[11px] text-slate-400">Permohonan baru</p></div>
+      </div>
+      <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
+      <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Saving Loket</p>
+      <div role="button" tabindex="0" data-action="saving:ada" class="flex cursor-pointer items-center gap-3 rounded-lg -mx-1 px-1 py-0.5 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60">
+        <div class="grid h-10 w-10 place-items-center rounded-lg bg-leaf-500/15 text-leaf-600"><i class="fa-solid fa-piggy-bank"></i></div>
+        <div>
+          <p class="text-lg font-extrabold text-slate-900 dark:text-white">${adaSaving}</p>
+          <p class="text-[11px] text-slate-400">Ada saving loket</p>
+          <p class="text-[10px] text-slate-400">PB ${adaSavingJenis['Pasang Baru']} · TD ${adaSavingJenis['Tambah Daya']}</p>
+        </div>
+      </div>
+      <div role="button" tabindex="0" data-action="saving:tanpa" class="flex cursor-pointer items-center gap-3 rounded-lg -mx-1 px-1 py-0.5 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60">
+        <div class="grid h-10 w-10 place-items-center rounded-lg bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-300"><i class="fa-solid fa-piggy-bank"></i></div>
+        <div>
+          <p class="text-lg font-extrabold text-slate-900 dark:text-white">${tanpaSaving}</p>
+          <p class="text-[11px] text-slate-400">Tanpa saving loket</p>
+          <p class="text-[10px] text-slate-400">PB ${tanpaSavingJenis['Pasang Baru']} · TD ${tanpaSavingJenis['Tambah Daya']}</p>
+        </div>
       </div>`;
 
     // Pipeline
@@ -293,18 +327,22 @@ export const dashboard = {
     if (!canvas || !window.Chart) return;
     const now = new Date();
     const labels = [];
-    const buckets = [];
+    const savingBuckets = [];
+    const tarikBuckets = [];
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       labels.push(MONTHS[d.getMonth()].slice(0, 3));
-      buckets.push(
-        state.kas
-          .filter((k) => {
-            const kd = new Date(k.date);
-            return k.tipe === 'Pemasukan' && kd.getMonth() === d.getMonth() && kd.getFullYear() === d.getFullYear();
-          })
-          .reduce((s, k) => s + k.nominal, 0)
-      );
+      const bulanIni = state.kas.filter((k) => {
+        const kd = new Date(k.date);
+        return kd.getMonth() === d.getMonth() && kd.getFullYear() === d.getFullYear();
+      });
+      const masuk = bulanIni.filter((k) => k.tipe === 'Pemasukan').reduce((s, k) => s + k.nominal, 0);
+      const keluarProyek = bulanIni
+        .filter((k) => k.tipe !== 'Pemasukan' && k.tipe !== 'Penarikan')
+        .reduce((s, k) => s + k.nominal, 0);
+      const tarik = bulanIni.filter((k) => k.tipe === 'Penarikan').reduce((s, k) => s + k.nominal, 0);
+      savingBuckets.push(Math.max(0, masuk - keluarProyek));
+      tarikBuckets.push(tarik);
     }
     const dark = document.documentElement.classList.contains('dark');
     if (chart) chart.destroy();
@@ -314,10 +352,18 @@ export const dashboard = {
         labels,
         datasets: [
           {
-            data: buckets,
-            backgroundColor: '#1B75BB',
+            label: 'Saving Loket',
+            data: savingBuckets,
+            backgroundColor: '#22a06b',
             borderRadius: 6,
-            maxBarThickness: 44,
+            maxBarThickness: 32,
+          },
+          {
+            label: 'Tarik Kas',
+            data: tarikBuckets,
+            backgroundColor: '#e8a33d',
+            borderRadius: 6,
+            maxBarThickness: 32,
           },
         ],
       },
@@ -326,7 +372,7 @@ export const dashboard = {
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: { label: (c) => formatRp(c.raw) } },
+          tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${formatRp(c.raw)}` } },
         },
         scales: {
           x: { grid: { display: false }, ticks: { color: dark ? '#94a3b8' : '#64748b' } },
@@ -346,12 +392,10 @@ function onCardClick(e) {
   const a = t.dataset.action;
   if (a === 'wait') goToPermohonan({ status: 'Menunggu Pembayaran' });
   else if (a === 'lunas') goToPermohonan({ status: 'Lunas' });
-  else if (a === 'pb1') goToPermohonan({ biaya1: true });
-  else if (a === 'nidihold') goToPermohonan({ nidiHold: true });
-  else if (a === 'kurang') goToPermohonan({ kurang: true });
-  else if (a === 'nosaving') goToPermohonan({ noSaving: true });
   else if (a.startsWith('step:')) goToPermohonan({ status: 'Lunas', step: a.split(':')[1] });
   else if (a.startsWith('open-perm:')) goToPermohonan({ q: a.split(':')[1] });
+  else if (a.startsWith('nidi-tanda:')) goToPermohonan({ nidiTanda: a.split(':')[1] });
+  else if (a.startsWith('saving:')) goToPermohonan({ saving: a.split(':')[1] });
   else if (a.startsWith('new-from-gv:')) {
     const noAgenda = a.slice('new-from-gv:'.length);
     const row = state.gvAgenda.find((r) => String(r.noAgenda) === noAgenda);

@@ -10,8 +10,9 @@ import { openProgressModal } from './progress.js';
 import { exportPermohonanPDF, cetakStruk } from '../lib/pdf.js';
 import { getPhoto } from '../lib/imageStore.js';
 import {
-  hargaTotalUntuk, rincianDana, danaNidiDiLoket, kekuranganBiaya, tanpaSavingLoket,
+  hargaTotalUntuk, rincianDana,
 } from '../lib/harga.js';
+import { nidiTandaChip, openNidiTandaPicker, NIDI_TANDA } from '../ui/nidiTanda.js';
 
 const PER_PAGE = 10;
 const now = new Date();
@@ -23,16 +24,14 @@ let filters = {
   jenis: 'All',
   status: 'All',
   step: 'All',
-  biaya1: false, // hanya Pasang Baru dengan biaya ≤ Rp 1
-  nidiHold: false, // hanya Pasang Baru yg dana NIDI+SLO masih di loket
-  kurang: false, // hanya yg biaya < Total daftar harga
-  noSaving: false, // hanya yg sudah dibayar tapi saving loket = 0
+  nidiTanda: 'All', // 'titip' | 'tidak_titip' | 'tidak_perlu' | 'dibayar' | 'kosong' | 'All'
+  saving: 'All', // 'ada' | 'tanpa' | 'All'
 };
 
 export function goToPermohonan(overrides = {}) {
   filters = {
     q: '', month: 'All', year: 'All', jenis: 'All', status: 'All', step: 'All',
-    biaya1: false, nidiHold: false, kurang: false, noSaving: false, ...overrides,
+    nidiTanda: 'All', saving: 'All', ...overrides,
   };
   page = 1;
   window.dispatchEvent(new CustomEvent('navigate', { detail: 'permohonan' }));
@@ -57,16 +56,16 @@ function getFiltered() {
       const matchMonth = filters.month === 'All' || d.getMonth() === +filters.month;
       const matchYear = filters.year === 'All' || d.getFullYear() === +filters.year;
       const matchJenis = filters.jenis === 'All' || p.jenis === filters.jenis;
-      const matchBiaya1 = !filters.biaya1 || (p.jenis === 'Pasang Baru' && Number(p.biaya) <= 1);
-      const matchNidiHold =
-        !filters.nidiHold || danaNidiDiLoket(p, state.kas, state.harga, state.hargaTd) > 0;
-      const matchKurang = !filters.kurang || kekuranganBiaya(p, state.harga, state.hargaTd) > 0;
-      const matchNoSaving =
-        !filters.noSaving || tanpaSavingLoket(p, state.kas, state.harga, state.hargaTd);
-      return (
-        matchQ && matchStatus && matchStep && matchMonth && matchYear &&
-        matchJenis && matchBiaya1 && matchNidiHold && matchKurang && matchNoSaving
-      );
+      const matchNidiTanda =
+        filters.nidiTanda === 'All' ||
+        (filters.nidiTanda === 'kosong' ? !p.nidiTanda : p.nidiTanda === filters.nidiTanda);
+      const matchSaving = (() => {
+        if (filters.saving === 'All') return true;
+        const dd = rincianDana(p, state.kas, state.harga, state.hargaTd);
+        if (!dd) return false;
+        return filters.saving === 'ada' ? dd.saving > 0 : dd.saving <= 0;
+      })();
+      return matchQ && matchStatus && matchStep && matchMonth && matchYear && matchJenis && matchNidiTanda && matchSaving;
     })
     .sort((a, b) => new Date(b.date) - new Date(a.date));
 }
@@ -103,7 +102,7 @@ const rincianMini = (p) => {
     'font-bold ' + (d.saving > 0 ? 'text-leaf-700 dark:text-leaf-400' : 'text-slate-400')
   );
   // Pasang Baru, NIDI+SLO belum dibayar, dan sisa loket habis/minus
-  const warnNidi = d.ref?.kind === 'Pasang Baru' && d.nidiBelum && d.sisa <= 0;
+  const warnNidi = d.nidiSlo > 0 && d.nidiBelum && d.sisa <= 0;
   const warn = warnNidi
     ? `<div class="mt-1 flex items-center gap-1.5 rounded bg-amber-100 px-2 py-1 text-[11px] font-bold text-amber-700 dark:bg-amber-950/50 dark:text-amber-400"><i class="fa-solid fa-triangle-exclamation"></i> Belum ada biaya NIDI+SLO</div>`
     : '';
@@ -250,7 +249,7 @@ export const permohonan = {
       const b = e.target.closest('[data-clear-filter]');
       if (!b) return;
       const k = b.dataset.clearFilter;
-      filters[k] = k === 'q' ? '' : ['biaya1', 'nidiHold', 'kurang', 'noSaving'].includes(k) ? false : 'All';
+      filters[k] = k === 'q' ? '' : 'All';
       page = 1;
       this.syncControls();
       this.refresh();
@@ -290,10 +289,13 @@ export const permohonan = {
     if (filters.jenis !== 'All') c.push(filterChip(filters.jenis, 'jenis'));
     if (filters.status !== 'All') c.push(filterChip(filters.status, 'status'));
     if (filters.step !== 'All') c.push(filterChip(`Tahap ${+filters.step + 1}`, 'step'));
-    if (filters.biaya1) c.push(filterChip('Pasang Baru · Biaya Rp 1', 'biaya1'));
-    if (filters.nidiHold) c.push(filterChip('Dana NIDI+SLO di loket', 'nidiHold'));
-    if (filters.kurang) c.push(filterChip('Kurang bayar', 'kurang'));
-    if (filters.noSaving) c.push(filterChip('Tanpa saving loket', 'noSaving'));
+    if (filters.nidiTanda !== 'All') {
+      const label = filters.nidiTanda === 'kosong' ? 'Belum ditandai NIDI+SLO' : NIDI_TANDA[filters.nidiTanda]?.label || filters.nidiTanda;
+      c.push(filterChip(label, 'nidiTanda'));
+    }
+    if (filters.saving !== 'All') {
+      c.push(filterChip(filters.saving === 'ada' ? 'Ada saving loket' : 'Tanpa saving loket', 'saving'));
+    }
     chips.innerHTML = c.join('');
 
     if (!state.ready) {
@@ -361,7 +363,7 @@ const rowHtml = (p) => `
       </span>
       <span class="mt-1 inline-block rounded bg-slate-100 px-2 py-0.5 text-[11px] text-slate-500 dark:bg-slate-800 dark:text-slate-400">${esc(p.daya)} VA</span>
     </td>
-    <td class="p-3">${infoPengerjaan(p)}${rincianMini(p)}</td>
+    <td class="p-3">${infoPengerjaan(p)}${rincianMini(p)}<div class="mt-1.5">${nidiTandaChip(p)}</div></td>
     <td class="p-3 font-bold text-slate-900 dark:text-white">
       <span class="whitespace-nowrap">${formatRp(p.biaya)}</span>
       ${marker(p)}
@@ -389,6 +391,7 @@ const cardHtml = (p) => `
     </div>
     ${marker(p)}
     ${rincianMini(p)}
+    <div class="mt-2">${nidiTandaChip(p)}</div>
     <div class="mt-3 border-t border-slate-100 pt-3 dark:border-slate-800">${infoPengerjaan(p)}</div>
     <div class="mt-3">${rowActions(p)}</div>
   </div>`;
@@ -434,6 +437,7 @@ async function onAction(e) {
         })
       );
     case 'wa': return openCopy(p);
+    case 'nidi-tanda': return openNidiTandaPicker(p);
   }
 }
 

@@ -138,6 +138,61 @@ export function hargaTotalUntuk(p, hargaRows, tdRows) {
   return { total: rt ? row.totalRt : row.totalNonRt, rt, kind: 'Pasang Baru', row };
 }
 
+/* ============ TABEL NIDI + SLO PER DAYA (terpisah) ============ */
+
+// Tambah Daya dengan daya di atas nilai ini = pindah ke 3 fasa -> perlu biaya NIDI+SLO.
+export const NIDI_SLO_TD_MIN_DAYA = 11000;
+
+// Daftar NIDI+SLO per daya — dipakai untuk Pasang Baru maupun Tambah Daya (3 fasa).
+export const DEFAULT_NIDI_SLO = [
+  { daya: 900, nidiSlo: 185000 },
+  { daya: 1300, nidiSlo: 280000 },
+  { daya: 2200, nidiSlo: 382000 },
+  { daya: 3500, nidiSlo: 505000 },
+  { daya: 4400, nidiSlo: 625000 },
+  { daya: 5500, nidiSlo: 770000 },
+  { daya: 6600, nidiSlo: 1070000 },
+  { daya: 7700, nidiSlo: 1475000 },
+  { daya: 10600, nidiSlo: 1408000 },
+  { daya: 13200, nidiSlo: 1746000 },
+  { daya: 16500, nidiSlo: 2175000 },
+  { daya: 23000, nidiSlo: 2445000 },
+  { daya: 33000, nidiSlo: 3330000 },
+  { daya: 41500, nidiSlo: 4180000 },
+  { daya: 53000, nidiSlo: 5330000 },
+  { daya: 66000, nidiSlo: 6300000 },
+  { daya: 82500, nidiSlo: 6640000 },
+  { daya: 105000, nidiSlo: 8430000 },
+  { daya: 131000, nidiSlo: 10510000 },
+  { daya: 147000, nidiSlo: 11790000 },
+  { daya: 164000, nidiSlo: 13150000 },
+  { daya: 197000, nidiSlo: 15790000 },
+];
+
+// Baris NIDI+SLO aktif dipegang di modul ini; store.js meng-update via setNidiSloRows().
+let _nidiSloRows = null;
+export const setNidiSloRows = (rows) => {
+  _nidiSloRows = rows;
+};
+export const activeNidiSlo = () =>
+  (_nidiSloRows && _nidiSloRows.length ? [..._nidiSloRows] : [...DEFAULT_NIDI_SLO]).sort(
+    (a, b) => a.daya - b.daya
+  );
+
+/**
+ * Biaya NIDI+SLO yang berlaku untuk sebuah permohonan (Rp; 0 bila tidak perlu).
+ * - Pasang Baru: dari tabel NIDI+SLO sesuai daya
+ * - Tambah Daya: hanya bila daya > 11.000 (1 fasa -> 3 fasa), dari tabel NIDI+SLO sesuai daya
+ */
+export function nidiSloWajib(p) {
+  if (!p) return 0;
+  const daya = Number(p.daya);
+  const isTD = /tambah daya|perubahan daya/i.test(p.jenis || '');
+  if (isTD && !(daya > NIDI_SLO_TD_MIN_DAYA)) return 0;
+  const row = activeNidiSlo().find((r) => r.daya === daya);
+  return row?.nidiSlo || 0;
+}
+
 /**
  * Rincian dana loket untuk sebuah permohonan berdasarkan transaksi kas.
  * Return null bila belum ada pembayaran masuk.
@@ -156,40 +211,17 @@ export function rincianDana(p, kasRows, hargaRows, tdRows) {
   const sisa = masuk - ppob - jasaPasangPaid - nidiPaid;
 
   const ref = hargaTotalUntuk(p, hargaRows, tdRows);
+  const nidiSlo = nidiSloWajib(p);
   const jasaBelum = jasaPasangPaid === 0;
   const nidiBelum = nidiPaid === 0;
   const alokJasa = jasaBelum && ref ? ref.row.jasaPasang || 0 : 0;
-  const alokNidi = nidiBelum && ref ? ref.row.nidiSlo || 0 : 0;
+  const alokNidi = nidiBelum ? nidiSlo : 0;
   const savingRaw = sisa - alokJasa - alokNidi;
   const saving = Math.max(0, savingRaw); // saving minus -> dianggap 0 (tidak ada saving)
 
   return {
     masuk, ppob, jasaPasangPaid, nidiPaid, sisa,
-    jasaBelum, nidiBelum, alokJasa, alokNidi, saving, savingRaw, ref,
+    jasaBelum, nidiBelum, alokJasa, alokNidi, nidiSlo, saving, savingRaw, ref,
   };
 }
 
-/** Kekurangan biaya permohonan dibanding Total daftar harga (0 bila pas/lebih/tidak ada acuan). */
-export function kekuranganBiaya(p, hargaRows, tdRows) {
-  const h = hargaTotalUntuk(p, hargaRows, tdRows);
-  if (!h) return 0;
-  const selisih = Number(p?.biaya || 0) - h.total;
-  return selisih < 0 ? -selisih : 0;
-}
-
-/**
- * Dana NIDI+SLO milik pelanggan Pasang Baru yang benar-benar tersimpan di loket:
- * NIDI+SLO belum dibayar DAN masih ada saving loket (> 0) — artinya dana pelanggan
- * cukup menutup semua alokasi termasuk NIDI+SLO. Return biaya NIDI+SLO (0 bila tidak).
- */
-export function danaNidiDiLoket(p, kasRows, hargaRows, tdRows) {
-  const d = rincianDana(p, kasRows, hargaRows, tdRows);
-  if (!d || d.ref?.kind !== 'Pasang Baru' || d.alokNidi <= 0 || d.saving <= 0) return 0;
-  return d.alokNidi;
-}
-
-/** true bila permohonan sudah dibayar tapi tidak menyisakan saving loket (saving = 0). */
-export function tanpaSavingLoket(p, kasRows, hargaRows, tdRows) {
-  const d = rincianDana(p, kasRows, hargaRows, tdRows);
-  return !!d && d.saving === 0;
-}

@@ -22,6 +22,7 @@ export const kasCol = collection(db, 'kas');
 export const gvCol = collection(db, 'gvAgenda');
 export const hargaCol = collection(db, 'harga');
 export const hargaTdCol = collection(db, 'hargaTambahDaya');
+export const nidiSloCol = collection(db, 'nidiSlo');
 
 export const permDoc = (id) => doc(db, 'permohonan', id);
 export const kasDoc = (id) => doc(db, 'kas', id);
@@ -29,6 +30,7 @@ export const buktiDoc = (id) => doc(db, 'bukti', id);
 export const gvDoc = (id) => doc(db, 'gvAgenda', id);
 export const hargaDoc = (id) => doc(db, 'harga', String(id));
 export const hargaTdDoc = (id) => doc(db, 'hargaTambahDaya', String(id));
+export const nidiSloDoc = (id) => doc(db, 'nidiSlo', String(id));
 
 export const newBatch = () => writeBatch(db);
 

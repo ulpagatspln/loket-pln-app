@@ -8,6 +8,7 @@ import {
 import { formatRp, parseNum, esc } from '../lib/format.js';
 import { compressImage, savePhoto, getPhoto } from '../lib/imageStore.js';
 import { hargaTotalUntuk, rincianDana } from '../lib/harga.js';
+import { nidiTandaChip, openNidiTandaPicker } from '../ui/nidiTanda.js';
 
 // Folder GDrive lama - hanya dipakai untuk tahap yang masih pakai link (step 5)
 const GDRIVE = {
@@ -117,7 +118,8 @@ export function openProgressModal(id) {
           : `<span title="${tip}" class="badge bg-pln-500/15 text-pln-700 dark:text-pln-300"><i class="fa-solid fa-arrow-up"></i> Biaya lebih ${formatRp(d)}</span>`
       );
     }
-    const gv = badges.length ? `<div class="mt-2 flex flex-wrap gap-1">${badges.join('')}</div>` : '';
+    badges.push(nidiTandaChip(p2));
+    const gv = `<div class="mt-2 flex flex-wrap gap-1">${badges.join('')}</div>`;
     return `
       <div class="mb-4 rounded-xl bg-slate-50 p-4 dark:bg-slate-800/60">
         <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Detail Permohonan</p>
@@ -165,6 +167,10 @@ export function openProgressModal(id) {
     bindRupiahInputs(ctrl.root);
     ctrl.root.querySelectorAll('[data-do]').forEach((b) => {
       b.addEventListener('click', () => handle(parseInt(b.dataset.do, 10), b));
+    });
+    ctrl.root.querySelector('[data-act="nidi-tanda"]')?.addEventListener('click', () => {
+      const p2 = state.permohonan.find((x) => x.id === id);
+      if (p2) openNidiTandaPicker(p2, () => setTimeout(rerender, 400));
     });
     ctrl.root.querySelectorAll('[data-photo]').forEach((inp) => {
       inp.addEventListener('change', () => onPickPhoto(parseInt(inp.dataset.photo, 10), inp.files[0]));
@@ -327,7 +333,7 @@ function rincianDanaHtml(p) {
     ? `<p class="mt-1.5 text-[10px] italic text-slate-400">Dana kurang ${formatRp(-d.savingRaw)} untuk menutup alokasi — saving dianggap Rp 0.</p>`
     : '';
 
-  const warnNidi = d.ref?.kind === 'Pasang Baru' && d.nidiBelum && d.sisa <= 0;
+  const warnNidi = d.nidiSlo > 0 && d.nidiBelum && d.sisa <= 0;
   const warn = warnNidi
     ? `<div class="mt-1.5 flex items-center gap-2 rounded-lg bg-amber-100 px-2.5 py-2 text-xs font-bold text-amber-700 dark:bg-amber-950/50 dark:text-amber-400">
          <i class="fa-solid fa-triangle-exclamation"></i> Belum ada biaya NIDI+SLO — dana di loket tidak cukup, perlu tarik biaya NIDI+SLO dari pelanggan.

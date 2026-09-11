@@ -1,11 +1,13 @@
 import {
   state, saveHargaRow, seedHarga, saveTambahDayaRow, seedTambahDaya,
+  saveNidiSloRow, deleteNidiSloRow, seedNidiSlo,
 } from '../store.js';
 import {
   DEFAULT_HARGA, activeHarga, DEFAULT_TAMBAH_DAYA, activeTambahDaya, TAMBAH_DAYA_FIELDS,
+  DEFAULT_NIDI_SLO, activeNidiSlo, NIDI_SLO_TD_MIN_DAYA,
 } from '../lib/harga.js';
 import { formatRp, parseNum } from '../lib/format.js';
-import { openModal } from '../ui/modal.js';
+import { openModal, confirmDialog } from '../ui/modal.js';
 import { toast } from '../ui/toast.js';
 import { requireAdmin } from '../ui/adminGate.js';
 import { bindRupiahInputs, emptyState } from '../ui/components.js';
@@ -39,13 +41,15 @@ export const harga = {
         <p class="text-sm text-slate-500 dark:text-slate-400"><b>RT</b> = Rumah Tangga, <b>Selain RT</b> = non-rumah tangga. Harga BP/PD &amp; Total sudah <b>tanpa token Rp 100.000</b>.</p>
       </div>
 
-      <div class="mb-5 inline-flex rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
+      <div class="mb-5 inline-flex flex-wrap rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
         <button data-pane-btn="pb" class="rounded-md px-4 py-1.5 text-sm font-semibold">Pasang Baru</button>
         <button data-pane-btn="td" class="rounded-md px-4 py-1.5 text-sm font-semibold">Tambah Daya</button>
+        <button data-pane-btn="nidi" class="rounded-md px-4 py-1.5 text-sm font-semibold">NIDI + SLO</button>
       </div>
 
       <div data-pane="pb"></div>
       <div data-pane="td" hidden></div>
+      <div data-pane="nidi" hidden></div>
     `;
 
     el.querySelectorAll('[data-pane-btn]').forEach((b) =>
@@ -94,6 +98,14 @@ export const harga = {
       });
       return;
     }
+    if (e.target.closest('[data-seed-nidi]')) {
+      return requireAdmin(async () => {
+        try {
+          await seedNidiSlo(DEFAULT_NIDI_SLO);
+          toast('Tabel NIDI+SLO tersimpan ke database.');
+        } catch { toast('Gagal menyimpan.', 'error'); }
+      });
+    }
     const editPb = e.target.closest('[data-edit-pb]');
     if (editPb) return requireAdmin(() => openEditPb(Number(editPb.dataset.editPb)));
     const editTd = e.target.closest('[data-edit-td]');
@@ -101,6 +113,9 @@ export const harga = {
       const [s, t] = editTd.dataset.editTd.split('-').map(Number);
       return requireAdmin(() => openEditTd(s, t));
     }
+    if (e.target.closest('[data-add-nidi]')) return requireAdmin(() => openNidiRow());
+    const editNidi = e.target.closest('[data-edit-nidi]');
+    if (editNidi) return requireAdmin(() => openNidiRow(Number(editNidi.dataset.editNidi)));
   },
 
   pbRows() { return activeHarga(state.harga); },
@@ -116,8 +131,34 @@ export const harga = {
     });
     this.el.querySelector('[data-pane="pb"]').hidden = pane !== 'pb';
     this.el.querySelector('[data-pane="td"]').hidden = pane !== 'td';
+    this.el.querySelector('[data-pane="nidi"]').hidden = pane !== 'nidi';
     if (pane === 'pb') this.renderPb();
-    else this.renderTd();
+    else if (pane === 'td') this.renderTd();
+    else this.renderNidi();
+  },
+
+  /* ---------- NIDI + SLO ---------- */
+  renderNidi() {
+    const host = this.el.querySelector('[data-pane="nidi"]');
+    if (!host.dataset.built) {
+      host.dataset.built = '1';
+      host.innerHTML = `
+        <div data-seed class="mb-4 hidden rounded-xl border border-gold-500/40 bg-gold-500/10 p-3 text-sm text-gold-700 dark:text-gold-400">
+          Masih memakai data bawaan (belum tersimpan ke database).
+          <button data-seed-nidi class="btn btn-gold btn-sm ml-2"><i class="fa-solid fa-database"></i> Simpan ke Database</button>
+        </div>
+        <div class="mb-4 rounded-xl border border-pln-200 bg-pln-50 p-3 text-xs text-pln-700 dark:border-pln-900/50 dark:bg-pln-950/30 dark:text-pln-300">
+          <i class="fa-solid fa-circle-info"></i> Biaya NIDI + SLO per daya. Dipakai untuk <b>Pasang Baru</b>
+          dan <b>Tambah Daya ke 3 fasa</b> (daya di atas ${vaFmt(NIDI_SLO_TD_MIN_DAYA)} VA).
+        </div>
+        ${tableShell('Tabel NIDI + SLO per Daya', 'data-add-nidi')}
+      `;
+    }
+    const rows = activeNidiSlo();
+    host.querySelector('[data-seed]').classList.toggle('hidden', state.nidiSlo.length > 0 || !state.ready);
+    host.querySelector('[data-table]').innerHTML = rows.length
+      ? nidiTableHtml(rows)
+      : emptyState({ icon: 'fa-bolt', title: 'Belum ada data' });
   },
 
   /* ---------- PASANG BARU ---------- */
@@ -245,10 +286,11 @@ const golonganToggle = (forKind) => `
     </div>
   </div>`;
 
-const tableShell = (title) => `
+const tableShell = (title, addAction) => `
   <div class="card overflow-hidden">
-    <div class="border-b border-slate-100 px-4 py-3 dark:border-slate-800">
+    <div class="flex items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 dark:border-slate-800">
       <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">${title}</h3>
+      ${addAction ? `<button ${addAction} class="btn btn-outline btn-sm"><i class="fa-solid fa-plus"></i> Tambah Baris</button>` : ''}
     </div>
     <div data-table class="overflow-x-auto"></div>
   </div>`;
@@ -277,6 +319,31 @@ const tile = (label, val, tone = '') => {
 
 const TH = 'p-2.5 text-right font-semibold text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400';
 const TD = 'whitespace-nowrap p-2.5 text-right tabular-nums text-slate-700 dark:text-slate-200';
+
+function nidiTableHtml(rows) {
+  return `
+    <table class="w-full text-sm">
+      <thead class="bg-slate-50 dark:bg-slate-800/60">
+        <tr>
+          <th class="${TH} !text-left">Daya (VA)</th>
+          <th class="${TH}">Biaya NIDI + SLO</th>
+          <th class="${TH} !text-center">Aksi</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+        ${rows
+          .map(
+            (r) => `
+          <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
+            <td class="p-2.5 font-bold text-slate-900 dark:text-white">${vaFmt(r.daya)}${r.daya > NIDI_SLO_TD_MIN_DAYA ? ' <span class="ml-1 rounded bg-pln-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-pln-600 dark:text-pln-400">3 fasa</span>' : ''}</td>
+            <td class="${TD} font-semibold text-slate-900 dark:text-white">${formatRp(r.nidiSlo)}</td>
+            <td class="p-2.5 text-center"><button data-edit-nidi="${r.daya}" class="btn-icon btn-ghost" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button></td>
+          </tr>`
+          )
+          .join('')}
+      </tbody>
+    </table>`;
+}
 
 function pbTableHtml(rows) {
   const stickyTh = `${TH} !text-left sticky left-0 z-20 bg-slate-50 dark:bg-slate-800`;
@@ -373,7 +440,7 @@ function tdTableHtml(rows) {
 
 /* ================= edit modals ================= */
 
-function editModal({ title, fields, current, onSave }) {
+function editModal({ title, fields, current, onSave, onDelete }) {
   openModal({
     size: 'md',
     title,
@@ -382,7 +449,8 @@ function editModal({ title, fields, current, onSave }) {
         <label class="field-label">${f.label}</label>
         <input data-f="${f.key}" data-rp inputmode="numeric" class="input" value="${rpFmt(current[f.key])}" />
       </div>`).join('')}
-    </div>`,
+    </div>
+    ${onDelete ? `<button data-del class="mt-3 text-xs font-semibold text-red-500 hover:underline"><i class="fa-solid fa-trash"></i> Hapus baris ini</button>` : ''}`,
     footer: `<div class="flex gap-2">
       <button data-cancel class="btn btn-ghost flex-1">Batal</button>
       <button data-ok class="btn btn-primary flex-1">Simpan</button>
@@ -390,6 +458,18 @@ function editModal({ title, fields, current, onSave }) {
     onMount: (ctrl) => {
       bindRupiahInputs(ctrl.root);
       ctrl.query('[data-cancel]').addEventListener('click', ctrl.close);
+      ctrl.query('[data-del]')?.addEventListener('click', () => {
+        ctrl.close();
+        confirmDialog({
+          title: 'Hapus Baris Harga',
+          message: 'Baris ini akan dihapus dari daftar harga.',
+          confirmText: 'Ya, Hapus',
+          onConfirm: async () => {
+            await onDelete();
+            toast('Baris dihapus.');
+          },
+        });
+      });
       ctrl.query('[data-ok]').addEventListener('click', async () => {
         const data = {};
         fields.forEach((f) => (data[f.key] = parseNum(ctrl.query(`[data-f="${f.key}"]`).dataset.raw)));
@@ -417,6 +497,63 @@ function openEditPb(daya) {
     fields: PB_FIELDS,
     current: r,
     onSave: (data) => saveHargaRow(daya, data),
+  });
+}
+
+// Tambah / edit satu baris tabel NIDI+SLO. `daya` undefined = tambah baru.
+function openNidiRow(daya) {
+  const isNew = daya == null;
+  const cur = isNew ? {} : activeNidiSlo().find((r) => r.daya === daya) || { daya };
+  openModal({
+    size: 'sm',
+    title: isNew ? 'Tambah Baris NIDI + SLO' : `Edit NIDI + SLO — ${vaFmt(daya)} VA`,
+    body: `
+      ${
+        isNew
+          ? `<div class="mb-3"><label class="field-label">Daya (VA) *</label><input data-daya inputmode="numeric" class="input" placeholder="mis. 66000" /></div>`
+          : ''
+      }
+      <label class="field-label">Biaya NIDI + SLO (Rp) *</label>
+      <input data-nidi data-rp inputmode="numeric" class="input" value="${cur.nidiSlo ? Number(cur.nidiSlo).toLocaleString('id-ID') : ''}" />
+      ${!isNew ? `<button data-del class="mt-3 text-xs font-semibold text-red-500 hover:underline"><i class="fa-solid fa-trash"></i> Hapus baris ini</button>` : ''}`,
+    footer: `<div class="flex gap-2">
+      <button data-cancel class="btn btn-ghost flex-1">Batal</button>
+      <button data-ok class="btn btn-primary flex-1">Simpan</button>
+    </div>`,
+    onMount: (ctrl) => {
+      bindRupiahInputs(ctrl.root);
+      ctrl.query('[data-cancel]').addEventListener('click', ctrl.close);
+      ctrl.query('[data-del]')?.addEventListener('click', () => {
+        ctrl.close();
+        confirmDialog({
+          title: 'Hapus Baris NIDI + SLO',
+          message: `Baris ${vaFmt(daya)} VA akan dihapus.`,
+          confirmText: 'Ya, Hapus',
+          onConfirm: async () => {
+            await deleteNidiSloRow(daya);
+            toast('Baris dihapus.');
+          },
+        });
+      });
+      ctrl.query('[data-ok]').addEventListener('click', async () => {
+        const d = isNew ? parseNum(ctrl.query('[data-daya]').value) : daya;
+        if (!d) return toast('Isi daya (VA).', 'error');
+        if (isNew && activeNidiSlo().some((r) => r.daya === d)) return toast('Daya itu sudah ada.', 'error');
+        const nidi = parseNum(ctrl.query('[data-nidi]').dataset.raw);
+        const ok = ctrl.query('[data-ok]');
+        ok.disabled = true;
+        ok.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        try {
+          await saveNidiSloRow(d, nidi);
+          ctrl.close();
+          toast('Tabel NIDI+SLO diperbarui.');
+        } catch {
+          ok.disabled = false;
+          ok.textContent = 'Simpan';
+          toast('Gagal menyimpan.', 'error');
+        }
+      });
+    },
   });
 }
 
