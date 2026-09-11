@@ -36,7 +36,7 @@ src/
   lib/gvImport.js     parseGvFile (SheetJS, lazy), importGv (sync koleksi `gvAgenda` + enrich permohonan)
   lib/harga.js        DEFAULT_HARGA + DEFAULT_TAMBAH_DAYA (seed) + kolom daftar harga
   ui/
-    theme.js          Dark mode (tersimpan di localStorage + ikut sistem)
+    theme.js          Dark mode (default gelap, tersimpan di localStorage setelah diganti user)
     toast.js          Notifikasi
     modal.js          openModal (bottom-sheet di mobile) + confirmDialog
     adminGate.js      requireAdmin(password) untuk edit/hapus
@@ -47,7 +47,7 @@ src/
     permohonan.js     Daftar (tabel desktop / kartu mobile), filter, PDF, bayar, salin WA
     permForm.js       Form tambah/edit 2 langkah
     progress.js       Timeline 6 tahap + input biaya/link/agenda/pemasang
-    kas.js            Buku kas, ringkasan, tambah/tarik/edit, saldo berjalan
+    kas.js            Buku kas, ringkasan, tambah/tarik/edit, saldo berjalan, filter jenis transaksi
     harga.js          Daftar Harga: kalkulator cepat + tabel biaya Pasang Baru per daya
 public/               favicon.svg, icons/ (PWA)
 reference/legacy.html Versi lama (arsip)
@@ -171,14 +171,21 @@ dari daftar harga), sisanya = **Saving Loket**.
 
 ### Grafik dashboard — Saving Loket & Tarik Kas
 
-Grafik batang 6 bulan terakhir di Dashboard (sebelumnya "Kas Masuk") menampilkan 2 seri
-per bulan, dihitung dari koleksi `kas`:
+Grafik batang **3 bulan terakhir** di Dashboard (sebelumnya "Kas Masuk" 6 bulan) menampilkan
+2 seri per bulan, dihitung dari koleksi `kas`:
 
 - **Saving Loket** (hijau) = Kas Masuk (tipe `Pemasukan`) bulan itu − Pengeluaran terkait
   proyek (PPOB/Pemasangan/NIDI-SLO, tipe selain `Pemasukan`/`Penarikan`) bulan itu,
   di-clamp minimal Rp 0. Ini arus kas bulanan, beda dari `rincianDana()` per permohonan
   (yang juga memperhitungkan alokasi biaya yang belum dibayar).
 - **Tarik Kas** (kuning) = total transaksi tipe `Penarikan` bulan itu.
+
+Di bawah grafik ada **"Analisa Keperluan Tarik Kas"** (periode 3 bulan yang sama): tiap
+transaksi `Penarikan` dikelompokkan berdasarkan kata kunci di keterangan (`KAS_KATEGORI` di
+`dashboard.js` — Sosial & Kedukaan, Air Galon Kantor, Konsumsi & Jamuan Tamu, Pekerjaan
+Lapangan, Operasional & Administrasi, Lainnya sbg fallback), ditampilkan sebagai daftar
+batang mini + rupiah + jumlah transaksi + persentase dari total tarik periode itu. Klasifikasi
+berbasis regex kata kunci teks bebas (heuristik) — bukan field kategori terstruktur.
 
 ## Catatan keamanan
 

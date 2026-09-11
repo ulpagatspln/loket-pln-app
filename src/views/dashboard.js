@@ -19,6 +19,17 @@ const NIDI_STATUS_ORDER = [
   { key: 'kosong', label: 'Belum Ditandai', icon: 'fa-circle-question', tone: 'bg-slate-100 text-slate-400 dark:bg-slate-800', withRp: false },
 ];
 
+// Kategori peruntukan tarik kas — dicocokkan dari kata kunci di keterangan (urutan = prioritas).
+const KAS_KATEGORI = [
+  { key: 'sosial', label: 'Sosial & Kedukaan', icon: 'fa-heart', bar: 'bg-pink-500', test: /karangan bunga|sumbangan|duka|ultah/i },
+  { key: 'air', label: 'Air Galon Kantor', icon: 'fa-droplet', bar: 'bg-sky-500', test: /\bblong\b|air kantor|filter air/i },
+  { key: 'konsumsi', label: 'Konsumsi & Jamuan Tamu', icon: 'fa-mug-hot', bar: 'bg-amber-500', test: /makan|minum|snack|kopi|kue|tamu|\bteh\b|aqua|nasi|tumpeng|roti|es buah|tissu|tisu/i },
+  { key: 'lapangan', label: 'Pekerjaan Lapangan', icon: 'fa-screwdriver-wrench', bar: 'bg-purple-500', test: /grounding|pemerataan beban|\bkabel\b|\bviar\b|bensin|\bsolar\b|pengerjaan/i },
+  { key: 'admin', label: 'Operasional & Administrasi', icon: 'fa-building', bar: 'bg-slate-400', test: /materai|hosting|top ?up|ongkir|ongkos kirim|\bpanel\b|retribusi|akrilik|beli tanah/i },
+  { key: 'lain', label: 'Lainnya', icon: 'fa-ellipsis', bar: 'bg-slate-300 dark:bg-slate-600', test: null },
+];
+const kategoriTarik = (ket) => KAS_KATEGORI.find((c) => c.test?.test(ket || '')) || KAS_KATEGORI[KAS_KATEGORI.length - 1];
+
 const PIPE = [
   { step: 0, label: 'Belum Pembayaran PPOB', icon: 'fa-money-bill-transfer', color: 'border-pln-500' },
   { step: 1, label: 'Belum Pemasangan', icon: 'fa-helmet-safety', color: 'border-gold-500' },
@@ -41,13 +52,18 @@ export const dashboard = {
       <div class="mb-6 grid gap-4 lg:grid-cols-3">
         <div class="card p-4 lg:col-span-2">
           <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">Saving &amp; Tarik Kas <span class="font-normal text-slate-400">— 6 Bln</span></h3>
+            <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">Saving &amp; Tarik Kas <span class="font-normal text-slate-400">— 3 Bln</span></h3>
             <div class="flex items-center gap-1.5">
               <span class="badge badge-green"><i class="fa-solid fa-piggy-bank"></i> Saving Loket</span>
               <span class="badge badge-amber"><i class="fa-solid fa-money-bill-wave"></i> Tarik Kas</span>
             </div>
           </div>
           <div class="h-52"><canvas data-chart></canvas></div>
+          <div class="my-3 border-t border-slate-100 dark:border-slate-800"></div>
+          <p class="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400">
+            <i class="fa-solid fa-magnifying-glass-dollar"></i> Analisa Keperluan Tarik Kas — 3 Bln Terakhir
+          </p>
+          <div data-tarik-analisa class="space-y-2"></div>
         </div>
         <div data-today class="card flex flex-col justify-center gap-3 p-4"></div>
       </div>
@@ -329,7 +345,8 @@ export const dashboard = {
     const labels = [];
     const savingBuckets = [];
     const tarikBuckets = [];
-    for (let i = 5; i >= 0; i--) {
+    const BULAN_TAMPIL = 3;
+    for (let i = BULAN_TAMPIL - 1; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       labels.push(MONTHS[d.getMonth()].slice(0, 3));
       const bulanIni = state.kas.filter((k) => {
@@ -344,6 +361,44 @@ export const dashboard = {
       savingBuckets.push(Math.max(0, masuk - keluarProyek));
       tarikBuckets.push(tarik);
     }
+
+    // Analisa keperluan tarik kas (peruntukan) periode yang sama dengan grafik
+    const periodStart = new Date(now.getFullYear(), now.getMonth() - (BULAN_TAMPIL - 1), 1);
+    const tarikPeriod = state.kas.filter((k) => k.tipe === 'Penarikan' && new Date(k.date) >= periodStart);
+    const kategoriSum = {};
+    for (const k of tarikPeriod) {
+      const kat = kategoriTarik(k.ket);
+      if (!kategoriSum[kat.key]) kategoriSum[kat.key] = { ...kat, total: 0, count: 0 };
+      kategoriSum[kat.key].total += k.nominal || 0;
+      kategoriSum[kat.key].count++;
+    }
+    const totalTarikPeriod = tarikPeriod.reduce((s, k) => s + (k.nominal || 0), 0);
+    const kategoriRows = Object.values(kategoriSum).sort((a, b) => b.total - a.total);
+    const maxKategoriTotal = kategoriRows[0]?.total || 1;
+    const analisaEl = this.el.querySelector('[data-tarik-analisa]');
+    if (analisaEl) {
+      analisaEl.innerHTML = kategoriRows.length
+        ? kategoriRows
+            .map((r) => {
+              const pct = totalTarikPeriod ? Math.round((r.total / totalTarikPeriod) * 100) : 0;
+              const width = Math.max(4, Math.round((r.total / maxKategoriTotal) * 100));
+              return `
+              <div class="min-w-0">
+                <div class="mb-1 flex items-center justify-between gap-2 text-xs">
+                  <span class="flex min-w-0 items-center gap-1.5 font-medium text-slate-600 dark:text-slate-300">
+                    <i class="fa-solid ${r.icon} w-3.5 shrink-0 text-center text-slate-400"></i>
+                    <span class="truncate">${r.label}</span>
+                    <span class="shrink-0 text-slate-400">(${r.count}x)</span>
+                  </span>
+                  <span class="shrink-0 whitespace-nowrap font-semibold text-slate-700 dark:text-slate-200">${formatRp(r.total)} <span class="font-normal text-slate-400">· ${pct}%</span></span>
+                </div>
+                <div class="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800"><div class="h-1.5 rounded-full ${r.bar}" style="width:${width}%"></div></div>
+              </div>`;
+            })
+            .join('')
+        : `<p class="text-xs text-slate-400">Belum ada penarikan kas 3 bulan terakhir.</p>`;
+    }
+
     const dark = document.documentElement.classList.contains('dark');
     if (chart) chart.destroy();
     chart = new window.Chart(canvas, {

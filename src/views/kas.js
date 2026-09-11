@@ -8,7 +8,7 @@ import { requireAdmin } from '../ui/adminGate.js';
 const PER_PAGE = 10;
 const now = new Date();
 let page = 1;
-let filters = { q: '', month: String(now.getMonth()), year: String(now.getFullYear()) };
+let filters = { q: '', month: String(now.getMonth()), year: String(now.getFullYear()), tipe: 'All' };
 
 function balanceMap() {
   const map = {};
@@ -30,7 +30,8 @@ function getFiltered() {
       return (
         (!q || k.ket.toLowerCase().includes(q) || k.id.toLowerCase().includes(q)) &&
         (filters.month === 'All' || d.getMonth() === +filters.month) &&
-        (filters.year === 'All' || d.getFullYear() === +filters.year)
+        (filters.year === 'All' || d.getFullYear() === +filters.year) &&
+        (filters.tipe === 'All' || k.tipe === filters.tipe)
       );
     })
     .sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -66,6 +67,12 @@ export const kas = {
             <i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
             <input data-q class="input pl-10" placeholder="Cari keterangan atau ID..." />
           </div>
+          <select data-f="tipe" class="select sm:w-44">
+            <option value="All">Semua Jenis</option>
+            <option value="Pemasukan">Kas Masuk / Tambah</option>
+            <option value="Penarikan">Tarik Kas</option>
+            <option value="Pengeluaran">Keluar (PPOB/Pasang/NIDI)</option>
+          </select>
           <select data-f="month" class="select sm:w-40">
             <option value="All">Semua Bulan</option>
             ${MONTHS.map((m, i) => `<option value="${i}">${m}</option>`).join('')}
@@ -114,7 +121,7 @@ export const kas = {
     this.el.querySelector('[data-f="year"]').innerHTML =
       `<option value="All">Semua Tahun</option>` +
       [...years].sort().reverse().map((y) => `<option value="${y}">${y}</option>`).join('');
-    ['month', 'year'].forEach((k) => (this.el.querySelector(`[data-f="${k}"]`).value = filters[k]));
+    ['tipe', 'month', 'year'].forEach((k) => (this.el.querySelector(`[data-f="${k}"]`).value = filters[k]));
   },
 
   refresh() {
@@ -123,8 +130,10 @@ export const kas = {
     const wrap = this.el.querySelector('[data-results]');
     const pager = this.el.querySelector('[data-pager]');
 
+    const TIPE_LABEL = { Pemasukan: 'Kas Masuk / Tambah', Penarikan: 'Tarik Kas', Pengeluaran: 'Keluar (PPOB/Pasang/NIDI)' };
     const chips = [];
     if (filters.q) chips.push(filterChip(`"${filters.q}"`, 'q'));
+    if (filters.tipe !== 'All') chips.push(filterChip(TIPE_LABEL[filters.tipe] || filters.tipe, 'tipe'));
     if (filters.month !== 'All') chips.push(filterChip(MONTHS[+filters.month], 'month'));
     if (filters.year !== 'All') chips.push(filterChip(filters.year, 'year'));
     this.el.querySelector('[data-chips]').innerHTML = chips.join('');

@@ -14,7 +14,7 @@ function apply(theme) {
 
 export function initTheme() {
   const saved = localStorage.getItem(KEY);
-  const theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const theme = saved || 'dark'; // default: mode gelap (bukan ikut preferensi sistem)
   apply(theme);
 
   document.querySelectorAll('[data-toggle-theme]').forEach((btn) => {

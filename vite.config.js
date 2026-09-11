@@ -22,9 +22,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'Loket PLN ULP Agats',
+        name: 'Loket PLN',
         short_name: 'Loket PLN',
-        description: 'Monitoring permohonan, progres pekerjaan, dan buku kas Loket PLN ULP Agats',
+        description: 'Monitoring permohonan, progres pekerjaan, dan buku kas Loket PLN',
         theme_color: '#1B75BB',
         background_color: '#0f172a',
         display: 'standalone',
