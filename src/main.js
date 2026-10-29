@@ -7,6 +7,7 @@ import { dashboard } from './views/dashboard.js';
 import { permohonan } from './views/permohonan.js';
 import { kas } from './views/kas.js';
 import { harga } from './views/harga.js';
+import { audit } from './views/audit.js';
 
 window.Chart = Chart;
 
@@ -18,6 +19,7 @@ const NAV = [
   { id: 'permohonan', label: 'Permohonan', icon: 'fa-file-signature', title: 'Permohonan & Loket', view: permohonan },
   { id: 'kas', label: 'Buku Kas', icon: 'fa-book', title: 'Buku Kas', view: kas },
   { id: 'harga', label: 'Daftar Harga', short: 'Harga', icon: 'fa-tags', title: 'Daftar Harga', view: harga },
+  { id: 'audit', label: 'Audit', icon: 'fa-clipboard-check', title: 'Audit', view: audit },
 ];
 
 const built = new Set();

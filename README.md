@@ -237,6 +237,26 @@ Kas yang Dapat Digunakan = Total Saldo Kas − Titipan NIDI+SLO − Safe Deposit
 - **Dashboard**: kartu **Safe Deposit** di samping "Kas yang Dapat Digunakan"; klik →
   Buku Kas terfilter pot `safe` (`goToKas({ pot: safe })` di `kas.js`).
 
+## Menu Audit (laporan PDF)
+
+Tab **Audit** (`src/views/audit.js`): pilih rentang tanggal (atau preset Bulan ini / Bulan lalu /
+3 bulan / Tahun ini / Semua data) lalu **Proses Audit** — hasilnya tampil di layar dan bisa
+diunduh sebagai PDF.
+
+- `src/lib/audit.js` — `buildAudit({from,to})`: seluruh perhitungan (murni dari `state`,
+  tanpa UI). Permohonan & kas disaring berdasarkan tanggalnya; saldo awal dihitung dari semua
+  kas sebelum tanggal awal sehingga **saldo akhir periode selalu rekonsiliasi** dengan
+  Buku Kas.
+- `src/lib/auditPdf.js` — `exportAuditPDF(report)`: jsPDF + autotable, A4 potret, 9 bagian
+  + lampiran A–G, nomor halaman, nama file `Audit_Loket_PLN_<dari>_sd_<sampai>.pdf`.
+- Isi: arus kas periode (masuk/keluar/tarik/saldo), posisi kas saat ini (titipan NIDI+SLO &
+  safe deposit), permohonan masuk per jenis, penanda NIDI+SLO + nilainya, saving loket,
+  kesesuaian biaya vs daftar harga, rekap penarikan per kategori, antrean & data belum
+  lengkap, **temuan otomatis**, lalu lampiran detail per pelanggan.
+- Temuan otomatis dibuat di `buildAudit` (level `bahaya` / `peringatan` / `info`), mis.
+  kas yang dapat digunakan minus, Pasang Baru tanpa saving, penarikan melebihi saving,
+  biaya Rp 1, permohonan belum ditandai, lunas > 30 hari belum selesai.
+
 ## Catatan keamanan
 
 Login (`admin`/`admin`) dan password admin gate masih di sisi klien — sama seperti
