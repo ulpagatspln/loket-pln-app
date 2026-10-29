@@ -161,25 +161,48 @@ export function exportAuditPDF(r) {
     ['Tidak ada di daftar harga', r.harga.takAda.pb, r.harga.takAda.td, r.harga.takAda.count, '-'],
   ], { columnStyles: { 1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'center' }, 4: { halign: 'right' } } });
 
-  /* ===== 7. Penarikan kas per kategori ===== */
-  y = judul(doc, '7. Rekap Penarikan Kas', 'Peruntukan uang yang ditarik dari kas selama periode');
+  /* ===== 7. Penarikan kas — rinci per kategori ===== */
+  y = judul(doc, '7. Rekap Penarikan Kas', 'Peruntukan uang yang ditarik dari kas, lengkap dengan rincian transaksinya');
   const totTarik = r.kas.tarik.total || 1;
+  const barisTarik = [];
+  for (const c of r.kas.tarik.perKategori) {
+    const pct = Math.round((c.total / totTarik) * 100);
+    // Baris judul kategori (subtotal)
+    barisTarik.push([
+      { content: `${c.label} — ${c.count} transaksi`, colSpan: 2, styles: { fontStyle: 'bold', fillColor: [253, 240, 219], textColor: [146, 94, 0] } },
+      { content: rp(c.total), styles: { fontStyle: 'bold', halign: 'right', fillColor: [253, 240, 219], textColor: [146, 94, 0] } },
+      { content: `${pct}%`, styles: { fontStyle: 'bold', halign: 'right', fillColor: [253, 240, 219], textColor: [146, 94, 0] } },
+    ]);
+    // Rincian transaksi kategori tersebut
+    r.kas.tarik.rows
+      .filter((t) => kategoriTarik(t.ket).key === c.key)
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .forEach((t) =>
+        barisTarik.push([
+          formatDateShort(t.date),
+          { content: t.ket, colSpan: 2 },
+          { content: rp(t.nominal), styles: { halign: 'right' } },
+        ])
+      );
+  }
+  if (barisTarik.length) {
+    barisTarik.push([
+      { content: `TOTAL PENARIKAN — ${r.kas.tarik.count} transaksi`, colSpan: 2, styles: { fontStyle: 'bold' } },
+      { content: rp(r.kas.tarik.total), styles: { fontStyle: 'bold', halign: 'right' } },
+      { content: '100%', styles: { fontStyle: 'bold', halign: 'right' } },
+    ]);
+  }
   tabel(
     doc,
     y,
-    ['Kategori', 'Transaksi', 'Nominal', '% dari total'],
-    r.kas.tarik.perKategori.length
-      ? [
-          ...r.kas.tarik.perKategori.map((c) => [c.label, c.count, rp(c.total), `${Math.round((c.total / totTarik) * 100)}%`]),
-          [
-            { content: 'Total', styles: { fontStyle: 'bold' } },
-            { content: String(r.kas.tarik.count), styles: { fontStyle: 'bold', halign: 'center' } },
-            { content: rp(r.kas.tarik.total), styles: { fontStyle: 'bold', halign: 'right' } },
-            { content: '100%', styles: { fontStyle: 'bold', halign: 'right' } },
-          ],
-        ]
+    ['Tanggal', 'Kategori / Keterangan', 'Nominal', '%'],
+    barisTarik.length
+      ? barisTarik
       : [[{ content: 'Tidak ada penarikan kas pada periode ini.', colSpan: 4, styles: { textColor: ABU } }]],
-    { warna: [217, 142, 0], columnStyles: { 1: { halign: 'center' }, 2: { halign: 'right' }, 3: { halign: 'right' } } }
+    {
+      warna: [217, 142, 0],
+      columnStyles: { 0: { cellWidth: 22 }, 2: { cellWidth: 30, halign: 'right' }, 3: { cellWidth: 14, halign: 'right' } },
+    }
   );
 
   /* ===== 8. Antrean & data belum lengkap ===== */
@@ -248,16 +271,7 @@ export function exportAuditPDF(r) {
       : kosong('Tidak ada.', 7),
     { warna: MERAH, columnStyles: { 4: { halign: 'right' }, 5: { halign: 'right' }, 6: { halign: 'right' } } });
 
-  y = judul(doc, 'Lampiran D — Penarikan kas periode ini');
-  tabel(doc, y, ['Tanggal', 'ID', 'Keterangan', 'Kategori', 'Nominal'],
-    r.kas.tarik.rows.length
-      ? [...r.kas.tarik.rows]
-          .sort((a, b) => new Date(a.date) - new Date(b.date))
-          .map((t) => [formatDateShort(t.date), t.id, t.ket, kategoriTarik(t.ket).label, rp(t.nominal)])
-      : kosong('Tidak ada penarikan kas.', 5),
-    { warna: [217, 142, 0], columnStyles: { 3: { cellWidth: 34 }, 4: { halign: 'right' } } });
-
-  y = judul(doc, 'Lampiran E — NOAGENDA belum masuk permohonan');
+  y = judul(doc, 'Lampiran D — NOAGENDA belum masuk permohonan');
   tabel(doc, y, ['NOAGENDA', 'Nama', 'Alamat', 'Layanan', 'Daya'],
     r.gv.belum.length
       ? r.gv.belum.map((g) => [g.noAgenda, g.nama || '-', g.alamat || '-', g.jenis || '-', `${g.daya || '-'} VA`])
@@ -265,12 +279,12 @@ export function exportAuditPDF(r) {
     { warna: ABU, columnStyles: { 0: { cellWidth: 34 }, 2: { cellWidth: 'auto' }, 4: { halign: 'right' } } });
 
   if (L.belumDitandai.length) {
-    y = judul(doc, 'Lampiran F — Permohonan belum diberi penanda NIDI+SLO');
+    y = judul(doc, 'Lampiran E — Permohonan belum diberi penanda NIDI+SLO');
     tabel(doc, y, ['ID', 'Tanggal', 'Pelanggan', 'Layanan', 'Daya'],
       L.belumDitandai.map((p) => [p.id, formatDateShort(p.date), p.nama, p.jenis, `${p.daya} VA`]), { warna: ABU });
   }
   if (L.biayaJanggal.length) {
-    y = judul(doc, 'Lampiran G — Permohonan dengan biaya Rp 0 / Rp 1', 'Perlu dicek, kemungkinan input belum dilengkapi');
+    y = judul(doc, 'Lampiran F — Permohonan dengan biaya Rp 0 / Rp 1', 'Perlu dicek, kemungkinan input belum dilengkapi');
     tabel(doc, y, ['ID', 'Tanggal', 'Pelanggan', 'Layanan', 'Biaya'],
       L.biayaJanggal.map((p) => [p.id, formatDateShort(p.date), p.nama, `${p.jenis} ${p.daya} VA`, rp(p.biaya)]),
       { warna: ABU, columnStyles: { 4: { halign: 'right' } } });

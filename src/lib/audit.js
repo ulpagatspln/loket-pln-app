@@ -191,7 +191,7 @@ export function buildAudit({ from, to }) {
   if (gvBelum.length)
     temuan.push({
       level: 'info',
-      teks: `${gvBelum.length} NOAGENDA dari data GV belum dibuatkan permohonan (PB ${gvPb} / TD ${gvBelum.length - gvPb}) — lihat Lampiran E.`,
+      teks: `${gvBelum.length} NOAGENDA dari data GV belum dibuatkan permohonan (PB ${gvPb} / TD ${gvBelum.length - gvPb}) — lihat Lampiran D.`,
     });
 
   return {
