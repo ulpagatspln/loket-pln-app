@@ -2,7 +2,7 @@ import { state, calculateSaldo, calculateSafeDeposit, gvBelumMasuk } from '../st
 import { formatRp, formatRpShort, formatDate, MONTHS, esc } from '../lib/format.js';
 import { nidiSloWajib, rincianDana, hargaTotalUntuk } from '../lib/harga.js';
 import { NIDI_TANDA } from '../ui/nidiTanda.js';
-import { kategoriTarik } from '../lib/kasKategori.js';
+import { kategoriTarik, kategoriPengeluaran } from '../lib/kasKategori.js';
 import { statCard, skeletonCards } from '../ui/components.js';
 import { toast } from '../ui/toast.js';
 import { confirmDialog } from '../ui/modal.js';
@@ -68,7 +68,7 @@ export const dashboard = {
           <div class="h-52"><canvas data-chart></canvas></div>
           <div class="my-3 border-t border-slate-100 dark:border-slate-800"></div>
           <p data-analisa-judul class="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400">
-            <i class="fa-solid fa-magnifying-glass-dollar"></i> Analisa Keperluan Tarik Kas
+            <i class="fa-solid fa-magnifying-glass-dollar"></i> Analisa Pengeluaran Kas
           </p>
           <div data-tarik-analisa class="space-y-2"></div>
         </div>
@@ -407,7 +407,7 @@ export const dashboard = {
     this.el.querySelector('[data-bulan="1"]').disabled = bulanOffset >= 0;
     const judulAnalisa = this.el.querySelector('[data-analisa-judul]');
     if (judulAnalisa)
-      judulAnalisa.innerHTML = `<i class="fa-solid fa-magnifying-glass-dollar"></i> Analisa Keperluan Tarik Kas — ${labelBulan}`;
+      judulAnalisa.innerHTML = `<i class="fa-solid fa-magnifying-glass-dollar"></i> Analisa Pengeluaran Kas — ${labelBulan}`;
 
     const kasBulan = state.kas.filter((k) => {
       const kd = new Date(k.date);
@@ -440,40 +440,66 @@ export const dashboard = {
         <span class="text-slate-400">Selisih: ${formatRp(totalSaving - totalTarik)}</span>`;
     }
 
-    // Analisa keperluan tarik kas (peruntukan) pada bulan yang sama
-    const tarikPeriod = kasBulan.filter((k) => k.tipe === 'Penarikan');
-    const kategoriSum = {};
-    for (const k of tarikPeriod) {
-      const kat = kategoriTarik(k.ket);
-      if (!kategoriSum[kat.key]) kategoriSum[kat.key] = { ...kat, total: 0, count: 0 };
-      kategoriSum[kat.key].total += k.nominal || 0;
-      kategoriSum[kat.key].count++;
-    }
-    const totalTarikPeriod = tarikPeriod.reduce((s, k) => s + (k.nominal || 0), 0);
-    const kategoriRows = Object.values(kategoriSum).sort((a, b) => b.total - a.total);
-    const maxKategoriTotal = kategoriRows[0]?.total || 1;
+    // Analisa pengeluaran kas bulan ini: pengeluaran transaksi & penarikan operasional
+    const kelompokkan = (rows, klasifikasi) => {
+      const sum = {};
+      for (const k of rows) {
+        const kat = klasifikasi(k.ket);
+        if (!sum[kat.key]) sum[kat.key] = { ...kat, total: 0, count: 0 };
+        sum[kat.key].total += k.nominal || 0;
+        sum[kat.key].count++;
+      }
+      const list = Object.values(sum).sort((a, b) => b.total - a.total);
+      return { list, total: list.reduce((s, r) => s + r.total, 0) };
+    };
+
+    const trxRows = kasBulan.filter((k) => k.tipe !== 'Pemasukan' && k.tipe !== 'Penarikan');
+    const trx = kelompokkan(trxRows, kategoriPengeluaran);
+    const tarik = kelompokkan(kasBulan.filter((k) => k.tipe === 'Penarikan'), kategoriTarik);
+
+    const barisKategori = (r, totalGrup, maxGrup) => {
+      const pct = totalGrup ? Math.round((r.total / totalGrup) * 100) : 0;
+      const width = Math.max(4, Math.round((r.total / maxGrup) * 100));
+      return `
+      <div class="min-w-0">
+        <div class="mb-1 flex items-center justify-between gap-2 text-xs">
+          <span class="flex min-w-0 items-center gap-1.5 font-medium text-slate-600 dark:text-slate-300">
+            <i class="fa-solid ${r.icon} w-3.5 shrink-0 text-center text-slate-400"></i>
+            <span class="truncate">${r.label}</span>
+            <span class="shrink-0 text-slate-400">(${r.count}x)</span>
+          </span>
+          <span class="shrink-0 whitespace-nowrap font-semibold text-slate-700 dark:text-slate-200">${formatRp(r.total)} <span class="font-normal text-slate-400">· ${pct}%</span></span>
+        </div>
+        <div class="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800"><div class="h-1.5 rounded-full ${r.bar}" style="width:${width}%"></div></div>
+      </div>`;
+    };
+
+    const grup = (judul, data, kosong) => `
+      <div>
+        <div class="mb-1.5 flex items-center justify-between gap-2">
+          <p class="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">${judul}</p>
+          <span class="text-[11px] font-extrabold text-slate-700 dark:text-slate-200">${formatRp(data.total)}</span>
+        </div>
+        ${
+          data.list.length
+            ? `<div class="space-y-2">${data.list
+                .map((r) => barisKategori(r, data.total, data.list[0].total || 1))
+                .join('')}</div>`
+            : `<p class="text-xs text-slate-400">${kosong}</p>`
+        }
+      </div>`;
+
     const analisaEl = this.el.querySelector('[data-tarik-analisa]');
     if (analisaEl) {
-      analisaEl.innerHTML = kategoriRows.length
-        ? kategoriRows
-            .map((r) => {
-              const pct = totalTarikPeriod ? Math.round((r.total / totalTarikPeriod) * 100) : 0;
-              const width = Math.max(4, Math.round((r.total / maxKategoriTotal) * 100));
-              return `
-              <div class="min-w-0">
-                <div class="mb-1 flex items-center justify-between gap-2 text-xs">
-                  <span class="flex min-w-0 items-center gap-1.5 font-medium text-slate-600 dark:text-slate-300">
-                    <i class="fa-solid ${r.icon} w-3.5 shrink-0 text-center text-slate-400"></i>
-                    <span class="truncate">${r.label}</span>
-                    <span class="shrink-0 text-slate-400">(${r.count}x)</span>
-                  </span>
-                  <span class="shrink-0 whitespace-nowrap font-semibold text-slate-700 dark:text-slate-200">${formatRp(r.total)} <span class="font-normal text-slate-400">· ${pct}%</span></span>
-                </div>
-                <div class="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800"><div class="h-1.5 rounded-full ${r.bar}" style="width:${width}%"></div></div>
-              </div>`;
-            })
-            .join('')
-        : `<p class="text-xs text-slate-400">Tidak ada penarikan kas pada bulan ini.</p>`;
+      analisaEl.innerHTML = `
+        <div class="space-y-4">
+          ${grup('Pengeluaran Transaksi', trx, 'Tidak ada pengeluaran transaksi pada bulan ini.')}
+          ${grup('Penarikan Kas Operasional', tarik, 'Tidak ada penarikan kas pada bulan ini.')}
+          <div class="flex items-center justify-between border-t border-slate-100 pt-2 text-xs dark:border-slate-800">
+            <span class="font-bold text-slate-700 dark:text-slate-200">Total uang keluar</span>
+            <span class="font-extrabold text-slate-900 dark:text-white">${formatRp(trx.total + tarik.total)}</span>
+          </div>
+        </div>`;
     }
 
     const dark = document.documentElement.classList.contains('dark');

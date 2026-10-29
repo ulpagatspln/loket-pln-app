@@ -188,7 +188,7 @@ mengikuti bulan yang dipilih. Dihitung dari koleksi `kas`:
   (yang juga memperhitungkan alokasi biaya yang belum dibayar).
 - **Tarik Kas** (kuning) = total transaksi tipe `Penarikan` bulan itu.
 
-Di bawah grafik ada **"Analisa Keperluan Tarik Kas"** (periode 3 bulan yang sama): tiap
+Di bawah grafik ada **"Analisa Pengeluaran Kas"** (periode 3 bulan yang sama): tiap
 transaksi `Penarikan` dikelompokkan berdasarkan kata kunci di keterangan (`KAS_KATEGORI` di
 `dashboard.js` — Sosial & Kedukaan, Air Kantor, Konsumsi & Jamuan Tamu, Pekerjaan
 Lapangan, Operasional & Administrasi, Lainnya sbg fallback), ditampilkan sebagai daftar
@@ -239,6 +239,21 @@ Kas yang Dapat Digunakan = Total Saldo Kas − Titipan NIDI+SLO − Safe Deposit
   dan filter **"Semua Pot"**.
 - **Dashboard**: kartu **Safe Deposit** di samping "Kas yang Dapat Digunakan"; klik →
   Buku Kas terfilter pot `safe` (`goToKas({ pot: safe })` di `kas.js`).
+
+### Analisa Pengeluaran Kas (dashboard)
+
+Panel di bawah grafik memecah **semua uang keluar** bulan terpilih jadi dua kelompok
+(definisi kategori ada di `src/lib/kasKategori.js`):
+
+- **Pengeluaran Transaksi** — kas tipe `Pengeluaran` yang terkait permohonan:
+  `PENGELUARAN_KATEGORI` / `kategoriPengeluaran()` → Pembayaran BP di PPOB, Jasa Pemasangan,
+  NIDI + SLO, Pengeluaran Lain.
+- **Penarikan Kas Operasional** — kas tipe `Penarikan`: `KAS_KATEGORI` / `kategoriTarik()`
+  (Air Kantor, Konsumsi & Jamuan Tamu, dst.).
+
+Persentase dihitung **di dalam kelompoknya masing-masing** supaya pengeluaran transaksi yang
+nilainya besar tidak menenggelamkan rincian penarikan operasional. Di bawah keduanya ada
+**Total uang keluar**.
 
 ## Menu Audit (laporan PDF)
 
