@@ -176,8 +176,11 @@ dari daftar harga), sisanya = **Saving Loket**.
 
 ### Grafik dashboard — Saving Loket & Tarik Kas
 
-Grafik batang **3 bulan terakhir** di Dashboard (sebelumnya "Kas Masuk" 6 bulan) menampilkan
-2 seri per bulan, dihitung dari koleksi `kas`:
+Grafik batang **per bulan** di Dashboard: menampilkan 2 seri **per tanggal** untuk satu bulan,
+dengan tombol panah ‹ › untuk menggeser ke bulan-bulan sebelumnya (tidak bisa melewati bulan
+berjalan). Bulan aktif disimpan di `bulanOffset` (0 = bulan ini). Di atas grafik ada ringkasan
+total saving/tarik/selisih bulan tersebut, dan "Analisa Keperluan Tarik Kas" di bawahnya ikut
+mengikuti bulan yang dipilih. Dihitung dari koleksi `kas`:
 
 - **Saving Loket** (hijau) = Kas Masuk (tipe `Pemasukan`) bulan itu − Pengeluaran terkait
   proyek (PPOB/Pemasangan/NIDI-SLO, tipe selain `Pemasukan`/`Penarikan`) bulan itu,

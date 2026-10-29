@@ -2,6 +2,7 @@ import { state, calculateSaldo, calculateSafeDeposit, gvBelumMasuk } from '../st
 import { formatRp, formatRpShort, formatDate, MONTHS, esc } from '../lib/format.js';
 import { nidiSloWajib, rincianDana, hargaTotalUntuk } from '../lib/harga.js';
 import { NIDI_TANDA } from '../ui/nidiTanda.js';
+import { kategoriTarik } from '../lib/kasKategori.js';
 import { statCard, skeletonCards } from '../ui/components.js';
 import { toast } from '../ui/toast.js';
 import { confirmDialog } from '../ui/modal.js';
@@ -10,6 +11,8 @@ import { goToKas } from './kas.js';
 import { openPermForm } from './permForm.js';
 
 let chart;
+// Bulan yang ditampilkan di grafik: 0 = bulan berjalan, -1 = bulan lalu, dst.
+let bulanOffset = 0;
 
 // Urutan & warna kartu ringkasan penanda NIDI+SLO di dashboard.
 const NIDI_STATUS_ORDER = [
@@ -40,22 +43,36 @@ export const dashboard = {
       </div>
       <div data-metrics class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5"></div>
       <div class="mb-6 grid gap-4 lg:grid-cols-3">
-        <div class="card p-4 lg:col-span-2">
+        <div class="card min-w-0 p-4 lg:col-span-2">
           <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">Saving &amp; Tarik Kas <span class="font-normal text-slate-400">— 3 Bln</span></h3>
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">Saving &amp; Tarik Kas</h3>
+              <div class="flex items-center gap-1">
+                <button data-bulan="-1" title="Bulan sebelumnya"
+                  class="grid h-7 w-7 place-items-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 dark:hover:bg-white/10">
+                  <i class="fa-solid fa-chevron-left text-xs"></i>
+                </button>
+                <span data-bulan-label class="min-w-[108px] text-center text-xs font-semibold text-slate-600 dark:text-slate-300"></span>
+                <button data-bulan="1" title="Bulan berikutnya"
+                  class="grid h-7 w-7 place-items-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent dark:hover:bg-white/10">
+                  <i class="fa-solid fa-chevron-right text-xs"></i>
+                </button>
+              </div>
+            </div>
             <div class="flex items-center gap-1.5">
               <span class="badge badge-green"><i class="fa-solid fa-piggy-bank"></i> Saving Loket</span>
               <span class="badge badge-amber"><i class="fa-solid fa-money-bill-wave"></i> Tarik Kas</span>
             </div>
           </div>
+          <div data-bulan-ringkas class="mb-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400"></div>
           <div class="h-52"><canvas data-chart></canvas></div>
           <div class="my-3 border-t border-slate-100 dark:border-slate-800"></div>
-          <p class="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400">
-            <i class="fa-solid fa-magnifying-glass-dollar"></i> Analisa Keperluan Tarik Kas — 3 Bln Terakhir
+          <p data-analisa-judul class="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400">
+            <i class="fa-solid fa-magnifying-glass-dollar"></i> Analisa Keperluan Tarik Kas
           </p>
           <div data-tarik-analisa class="space-y-2"></div>
         </div>
-        <div data-today class="card flex flex-col justify-center gap-3 p-4"></div>
+        <div data-today class="card flex min-w-0 flex-col justify-center gap-3 p-4"></div>
       </div>
       <div class="mb-3 flex items-center gap-2">
         <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">
@@ -97,6 +114,14 @@ export const dashboard = {
     el.querySelector('[data-pipeline]').addEventListener('click', onCardClick);
     el.querySelector('[data-nidi-status]').addEventListener('click', onCardClick);
     el.querySelector('[data-today]').addEventListener('click', onCardClick);
+    el.querySelectorAll('[data-bulan]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const next = bulanOffset + Number(b.dataset.bulan);
+        if (next > 0) return; // tidak bisa melewati bulan berjalan
+        bulanOffset = next;
+        this.renderChart();
+      })
+    );
     el.querySelector('[data-gv-file]').addEventListener('change', (e) => this.onGvFile(e.target));
     const gvList = el.querySelector('[data-gv-list]');
     gvList.addEventListener('click', onCardClick);
@@ -373,29 +398,50 @@ export const dashboard = {
     const canvas = this.el.querySelector('[data-chart]');
     if (!canvas || !window.Chart) return;
     const now = new Date();
+
+    // Bulan yang sedang ditampilkan (bisa digeser lewat tombol panah)
+    const bulan = new Date(now.getFullYear(), now.getMonth() + bulanOffset, 1);
+    const jumlahHari = new Date(bulan.getFullYear(), bulan.getMonth() + 1, 0).getDate();
+    const labelBulan = `${MONTHS[bulan.getMonth()]} ${bulan.getFullYear()}`;
+    this.el.querySelector('[data-bulan-label]').textContent = labelBulan;
+    this.el.querySelector('[data-bulan="1"]').disabled = bulanOffset >= 0;
+    const judulAnalisa = this.el.querySelector('[data-analisa-judul]');
+    if (judulAnalisa)
+      judulAnalisa.innerHTML = `<i class="fa-solid fa-magnifying-glass-dollar"></i> Analisa Keperluan Tarik Kas — ${labelBulan}`;
+
+    const kasBulan = state.kas.filter((k) => {
+      const kd = new Date(k.date);
+      return kd.getMonth() === bulan.getMonth() && kd.getFullYear() === bulan.getFullYear();
+    });
+
+    // Per tanggal: saving = kas masuk − pengeluaran proyek; tarik = penarikan
     const labels = [];
     const savingBuckets = [];
     const tarikBuckets = [];
-    const BULAN_TAMPIL = 3;
-    for (let i = BULAN_TAMPIL - 1; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      labels.push(MONTHS[d.getMonth()].slice(0, 3));
-      const bulanIni = state.kas.filter((k) => {
-        const kd = new Date(k.date);
-        return kd.getMonth() === d.getMonth() && kd.getFullYear() === d.getFullYear();
-      });
-      const masuk = bulanIni.filter((k) => k.tipe === 'Pemasukan').reduce((s, k) => s + k.nominal, 0);
-      const keluarProyek = bulanIni
+    for (let h = 1; h <= jumlahHari; h++) {
+      const hariIni = kasBulan.filter((k) => new Date(k.date).getDate() === h);
+      const masuk = hariIni.filter((k) => k.tipe === 'Pemasukan').reduce((s, k) => s + k.nominal, 0);
+      const keluarProyek = hariIni
         .filter((k) => k.tipe !== 'Pemasukan' && k.tipe !== 'Penarikan')
         .reduce((s, k) => s + k.nominal, 0);
-      const tarik = bulanIni.filter((k) => k.tipe === 'Penarikan').reduce((s, k) => s + k.nominal, 0);
+      labels.push(String(h));
       savingBuckets.push(Math.max(0, masuk - keluarProyek));
-      tarikBuckets.push(tarik);
+      tarikBuckets.push(hariIni.filter((k) => k.tipe === 'Penarikan').reduce((s, k) => s + k.nominal, 0));
     }
 
-    // Analisa keperluan tarik kas (peruntukan) periode yang sama dengan grafik
-    const periodStart = new Date(now.getFullYear(), now.getMonth() - (BULAN_TAMPIL - 1), 1);
-    const tarikPeriod = state.kas.filter((k) => k.tipe === 'Penarikan' && new Date(k.date) >= periodStart);
+    // Ringkasan total bulan tersebut
+    const totalSaving = savingBuckets.reduce((s, v) => s + v, 0);
+    const totalTarik = tarikBuckets.reduce((s, v) => s + v, 0);
+    const ringkas = this.el.querySelector('[data-bulan-ringkas]');
+    if (ringkas) {
+      ringkas.innerHTML = `
+        <span><i class="fa-solid fa-piggy-bank text-leaf-500"></i> Saving: <b class="text-slate-700 dark:text-slate-200">${formatRp(totalSaving)}</b></span>
+        <span><i class="fa-solid fa-money-bill-wave text-gold-500"></i> Tarik kas: <b class="text-slate-700 dark:text-slate-200">${formatRp(totalTarik)}</b></span>
+        <span class="text-slate-400">Selisih: ${formatRp(totalSaving - totalTarik)}</span>`;
+    }
+
+    // Analisa keperluan tarik kas (peruntukan) pada bulan yang sama
+    const tarikPeriod = kasBulan.filter((k) => k.tipe === 'Penarikan');
     const kategoriSum = {};
     for (const k of tarikPeriod) {
       const kat = kategoriTarik(k.ket);
@@ -427,7 +473,7 @@ export const dashboard = {
               </div>`;
             })
             .join('')
-        : `<p class="text-xs text-slate-400">Belum ada penarikan kas 3 bulan terakhir.</p>`;
+        : `<p class="text-xs text-slate-400">Tidak ada penarikan kas pada bulan ini.</p>`;
     }
 
     const dark = document.documentElement.classList.contains('dark');
