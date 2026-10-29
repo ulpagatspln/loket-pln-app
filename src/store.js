@@ -56,6 +56,19 @@ const emit = () => listeners.forEach((fn) => fn(state));
 export const calculateSaldo = () =>
   state.kas.reduce((sum, t) => (t.tipe === 'Pemasukan' ? sum + t.nominal : sum - t.nominal), 0);
 
+/**
+ * Pot kas: 'safe' (safe deposit, disisihkan) atau 'gabungan' (default).
+ * Dokumen kas lama tanpa field 'pot' dianggap 'gabungan'.
+ */
+export const potKas = (k) => (k?.pot === 'safe' ? 'safe' : 'gabungan');
+
+/** Saldo yang tersimpan di safe deposit (bagian dari total saldo kas). */
+export const calculateSafeDeposit = () =>
+  state.kas.reduce((sum, t) => {
+    if (potKas(t) !== 'safe') return sum;
+    return t.tipe === 'Pemasukan' ? sum + t.nominal : sum - t.nominal;
+  }, 0);
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function subscribe(col, apply) {
@@ -268,18 +281,26 @@ export async function advanceStep(id, stepIndex, { agenda = '', pemasang = '' } 
 
 /* ============ KAS ============ */
 
-export async function tambahKas(nominal, ket) {
+export async function tambahKas(nominal, ket, pot = 'gabungan') {
   const kId = generateId('IN');
-  await setDoc(kasDoc(kId), { id: kId, date: new Date().toISOString(), ket, tipe: 'Pemasukan', nominal });
+  await setDoc(kasDoc(kId), {
+    id: kId, date: new Date().toISOString(), ket, tipe: 'Pemasukan', nominal,
+    pot: pot === 'safe' ? 'safe' : 'gabungan',
+  });
 }
 
-export async function tarikKas(nominal, ket) {
+export async function tarikKas(nominal, ket, pot = 'gabungan') {
   const kId = generateId('TRK');
-  await setDoc(kasDoc(kId), { id: kId, date: new Date().toISOString(), ket, tipe: 'Penarikan', nominal });
+  await setDoc(kasDoc(kId), {
+    id: kId, date: new Date().toISOString(), ket, tipe: 'Penarikan', nominal,
+    pot: pot === 'safe' ? 'safe' : 'gabungan',
+  });
 }
 
-export async function updateKas(id, ket, nominal) {
-  await setDoc(kasDoc(id), { ket, nominal }, { merge: true });
+export async function updateKas(id, ket, nominal, pot) {
+  const data = { ket, nominal };
+  if (pot) data.pot = pot === 'safe' ? 'safe' : 'gabungan';
+  await setDoc(kasDoc(id), data, { merge: true });
 }
 
 export async function deleteKas(id) {

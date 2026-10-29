@@ -1,4 +1,4 @@
-import { state, calculateSaldo, gvBelumMasuk } from '../store.js';
+import { state, calculateSaldo, calculateSafeDeposit, gvBelumMasuk } from '../store.js';
 import { formatRp, formatRpShort, formatDate, MONTHS, esc } from '../lib/format.js';
 import { nidiSloWajib, rincianDana, hargaTotalUntuk } from '../lib/harga.js';
 import { NIDI_TANDA } from '../ui/nidiTanda.js';
@@ -6,6 +6,7 @@ import { statCard, skeletonCards } from '../ui/components.js';
 import { toast } from '../ui/toast.js';
 import { confirmDialog } from '../ui/modal.js';
 import { goToPermohonan } from './permohonan.js';
+import { goToKas } from './kas.js';
 import { openPermForm } from './permForm.js';
 
 let chart;
@@ -48,7 +49,7 @@ export const dashboard = {
         <h2 class="text-lg font-extrabold text-slate-900 dark:text-white md:text-xl">Dashboard</h2>
         <p class="text-sm text-slate-500 dark:text-slate-400">Ringkasan kas dan monitoring progres permohonan.</p>
       </div>
-      <div data-metrics class="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"></div>
+      <div data-metrics class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5"></div>
       <div class="mb-6 grid gap-4 lg:grid-cols-3">
         <div class="card p-4 lg:col-span-2">
           <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -120,7 +121,7 @@ export const dashboard = {
   refresh() {
     if (!this.el) return;
     if (!state.ready) {
-      this.el.querySelector('[data-metrics]').innerHTML = skeletonCards(4);
+      this.el.querySelector('[data-metrics]').innerHTML = skeletonCards(5);
       return;
     }
     const saldo = calculateSaldo();
@@ -173,7 +174,8 @@ export const dashboard = {
       </div>`
     ).join('');
 
-    const kasDapatDigunakan = Math.max(0, saldo - nidiRp.titip);
+    const safeDeposit = calculateSafeDeposit();
+    const kasDapatDigunakan = Math.max(0, saldo - nidiRp.titip - safeDeposit);
     this.el.querySelector('[data-metrics]').innerHTML = [
       statCard({ label: 'Total Saldo Kas', value: formatRp(saldo), icon: 'fa-wallet', tone: 'pln' }),
       statCard({
@@ -181,7 +183,15 @@ export const dashboard = {
         value: formatRp(kasDapatDigunakan),
         icon: 'fa-sack-dollar',
         tone: 'iris',
-        sub: `− Titipan NIDI+SLO ${formatRp(nidiRp.titip)}`,
+        sub: `− Titipan NIDI+SLO ${formatRp(nidiRp.titip)} − Safe deposit ${formatRp(safeDeposit)}`,
+      }),
+      statCard({
+        label: 'Safe Deposit',
+        value: formatRp(safeDeposit),
+        icon: 'fa-vault',
+        tone: 'iris',
+        sub: 'Disisihkan, tidak dipakai operasional',
+        onClick: 'kas-safe',
       }),
       statCard({ label: 'Menunggu Pembayaran', value: `${waiting} berkas`, icon: 'fa-clock', tone: 'gold', onClick: 'wait' }),
       statCard({ label: 'Permohonan Lunas', value: `${lunas} berkas`, icon: 'fa-file-circle-check', tone: 'leaf', onClick: 'lunas' }),
@@ -513,6 +523,7 @@ function onCardClick(e) {
   else if (a.startsWith('nidi-tanda:')) goToPermohonan({ nidiTanda: a.split(':')[1] });
   else if (a.startsWith('saving:')) goToPermohonan({ saving: a.split(':')[1] });
   else if (a.startsWith('biaya:')) goToPermohonan({ biaya: a.split(':')[1] });
+  else if (a === 'kas-safe') goToKas({ pot: 'safe' });
   else if (a.startsWith('new-from-gv:')) {
     const noAgenda = a.slice('new-from-gv:'.length);
     const row = state.gvAgenda.find((r) => String(r.noAgenda) === noAgenda);

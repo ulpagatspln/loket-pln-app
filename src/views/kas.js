@@ -1,4 +1,4 @@
-import { state, calculateSaldo, tambahKas, tarikKas, updateKas, deleteKas } from '../store.js';
+import { state, calculateSaldo, calculateSafeDeposit, potKas, tambahKas, tarikKas, updateKas, deleteKas } from '../store.js';
 import { formatRp, formatDateShort, formatTime, MONTHS, esc, parseNum } from '../lib/format.js';
 import { emptyState, skeletonRows, filterChip, bindRupiahInputs } from '../ui/components.js';
 import { openModal, confirmDialog } from '../ui/modal.js';
@@ -8,7 +8,16 @@ import { requireAdmin } from '../ui/adminGate.js';
 const PER_PAGE = 10;
 const now = new Date();
 let page = 1;
-let filters = { q: '', month: String(now.getMonth()), year: String(now.getFullYear()), tipe: 'All' };
+let filters = { q: '', month: String(now.getMonth()), year: String(now.getFullYear()), tipe: 'All', pot: 'All' };
+
+/** Buka menu Buku Kas dengan filter tertentu (dipakai kartu dashboard). */
+export function goToKas(overrides = {}) {
+  filters = { q: '', month: 'All', year: 'All', tipe: 'All', pot: 'All', ...overrides };
+  page = 1;
+  window.dispatchEvent(new CustomEvent('navigate', { detail: 'kas' }));
+  kas.syncControls?.();
+  kas.refresh();
+}
 
 function balanceMap() {
   const map = {};
@@ -31,7 +40,8 @@ function getFiltered() {
         (!q || k.ket.toLowerCase().includes(q) || k.id.toLowerCase().includes(q)) &&
         (filters.month === 'All' || d.getMonth() === +filters.month) &&
         (filters.year === 'All' || d.getFullYear() === +filters.year) &&
-        (filters.tipe === 'All' || k.tipe === filters.tipe)
+        (filters.tipe === 'All' || k.tipe === filters.tipe) &&
+        (filters.pot === 'All' || potKas(k) === filters.pot)
       );
     })
     .sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -52,6 +62,10 @@ export const kas = {
             <span class="text-[10px] font-bold uppercase tracking-wide text-pln-600 dark:text-pln-400">Saldo Kas Laci</span>
             <span data-saldo class="text-lg font-extrabold text-pln-900 dark:text-pln-200">Rp 0</span>
           </div>
+          <div class="flex items-center justify-between gap-4 rounded-xl border border-iris-500/30 bg-iris-500/10 px-4 py-2.5 sm:flex-col sm:items-end sm:justify-center sm:text-right">
+            <span class="text-[10px] font-bold uppercase tracking-wide text-iris-600 dark:text-iris-300">Safe Deposit</span>
+            <span data-safe class="text-lg font-extrabold text-iris-700 dark:text-iris-200">Rp 0</span>
+          </div>
           <div class="flex gap-2">
             <button data-add class="btn btn-success flex-1"><i class="fa-solid fa-plus"></i> Tambah</button>
             <button data-tarik class="btn btn-danger flex-1"><i class="fa-solid fa-money-bill-wave"></i> Tarik</button>
@@ -67,6 +81,11 @@ export const kas = {
             <i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
             <input data-q class="input pl-10" placeholder="Cari keterangan atau ID..." />
           </div>
+          <select data-f="pot" class="select sm:w-40">
+            <option value="All">Semua Pot</option>
+            <option value="gabungan">Gabungan</option>
+            <option value="safe">Safe Deposit</option>
+          </select>
           <select data-f="tipe" class="select sm:w-44">
             <option value="All">Semua Jenis</option>
             <option value="Pemasukan">Kas Masuk / Tambah</option>
@@ -121,12 +140,13 @@ export const kas = {
     this.el.querySelector('[data-f="year"]').innerHTML =
       `<option value="All">Semua Tahun</option>` +
       [...years].sort().reverse().map((y) => `<option value="${y}">${y}</option>`).join('');
-    ['tipe', 'month', 'year'].forEach((k) => (this.el.querySelector(`[data-f="${k}"]`).value = filters[k]));
+    ['pot', 'tipe', 'month', 'year'].forEach((k) => (this.el.querySelector(`[data-f="${k}"]`).value = filters[k]));
   },
 
   refresh() {
     if (!this.el) return;
     this.el.querySelector('[data-saldo]').textContent = formatRp(calculateSaldo());
+    this.el.querySelector('[data-safe]').textContent = formatRp(calculateSafeDeposit());
     const wrap = this.el.querySelector('[data-results]');
     const pager = this.el.querySelector('[data-pager]');
 
@@ -134,6 +154,7 @@ export const kas = {
     const chips = [];
     if (filters.q) chips.push(filterChip(`"${filters.q}"`, 'q'));
     if (filters.tipe !== 'All') chips.push(filterChip(TIPE_LABEL[filters.tipe] || filters.tipe, 'tipe'));
+    if (filters.pot !== 'All') chips.push(filterChip(filters.pot === 'safe' ? 'Safe Deposit' : 'Kas Gabungan', 'pot'));
     if (filters.month !== 'All') chips.push(filterChip(MONTHS[+filters.month], 'month'));
     if (filters.year !== 'All') chips.push(filterChip(filters.year, 'year'));
     this.el.querySelector('[data-chips]').innerHTML = chips.join('');
@@ -218,6 +239,12 @@ const typeMeta = (k) => {
   return { label: 'Keluar', cls: 'badge-amber', icon: 'fa-arrow-up' };
 };
 
+// Badge kecil untuk transaksi yang masuk/keluar lewat safe deposit
+const safeBadge = (k) =>
+  potKas(k) === 'safe'
+    ? ` <span class="badge bg-iris-500/15 text-iris-600 dark:text-iris-300"><i class="fa-solid fa-vault"></i> Safe Deposit</span>`
+    : '';
+
 const linkBtn = (k) =>
   k.link
     ? `<a href="${esc(k.link)}" target="_blank" rel="noopener" class="btn-icon btn-ghost text-pln-600 dark:text-pln-400"><i class="fa-solid fa-link"></i></a>`
@@ -238,6 +265,7 @@ const rowHtml = (k, saldo) => {
     <td class="p-3">
       <p class="font-semibold text-slate-900 dark:text-white">${esc(k.ket)}</p>
       <p class="text-[10px] text-slate-400">ID: ${k.id}${k.refId ? ` · Ref: ${k.refId}` : ''}</p>
+      ${safeBadge(k)}
     </td>
     <td class="p-3 text-right font-bold text-leaf-600 dark:text-leaf-400">${isMasuk ? formatRp(k.nominal) : '–'}</td>
     <td class="p-3 text-right font-bold ${k.tipe === 'Penarikan' ? 'text-amber-500' : 'text-red-500 dark:text-red-400'}">${!isMasuk ? formatRp(k.nominal) : '–'}</td>
@@ -256,7 +284,10 @@ const cardHtml = (k, saldo) => {
         <p class="font-semibold text-slate-900 dark:text-white">${esc(k.ket)}</p>
         <p class="text-[10px] text-slate-400">${k.id}${k.refId ? ` · Ref: ${k.refId}` : ''} · ${formatDateShort(k.date)} ${formatTime(k.date)}</p>
       </div>
-      <span class="badge ${m.cls} shrink-0"><i class="fa-solid ${m.icon}"></i> ${m.label}</span>
+      <div class="flex shrink-0 flex-col items-end gap-1">
+        <span class="badge ${m.cls}"><i class="fa-solid ${m.icon}"></i> ${m.label}</span>
+        ${safeBadge(k)}
+      </div>
     </div>
     <div class="mt-3 flex items-end justify-between">
       <div>
@@ -294,12 +325,36 @@ function onAction(e) {
     );
 }
 
-function amountModal({ title, icon, tone, note, confirmText, onSubmit }) {
+/* ===== Pemilih pot kas (Gabungan / Safe Deposit) — dipakai modal tambah, tarik & edit ===== */
+const potPickerHtml = () => `
+  <div data-pot-group class="mb-1 grid grid-cols-2 gap-2">
+    <button type="button" data-pot="gabungan" class="pot-btn"><i class="fa-solid fa-layer-group"></i> Gabungan</button>
+    <button type="button" data-pot="safe" class="pot-btn"><i class="fa-solid fa-vault"></i> Safe Deposit</button>
+  </div>
+  <p data-pot-note class="mb-3 text-[11px] leading-snug text-slate-400"></p>`;
+
+/** Pasang handler tombol pot; return getter nilai pot terpilih. */
+function wirePotPicker(ctrl, initial, notes = {}) {
+  let pot = initial === 'safe' ? 'safe' : 'gabungan';
+  const sync = () => {
+    ctrl.root.querySelectorAll('[data-pot]').forEach((b) => b.classList.toggle('pot-btn-active', b.dataset.pot === pot));
+    ctrl.query('[data-pot-note]').textContent = notes[pot] || '';
+  };
+  ctrl.root.querySelectorAll('[data-pot]').forEach((b) =>
+    b.addEventListener('click', () => { pot = b.dataset.pot; sync(); })
+  );
+  sync();
+  return () => pot;
+}
+
+function amountModal({ title, icon, tone, note, confirmText, onSubmit, potLabel, potNote }) {
   openModal({
     size: 'sm',
     title,
     body: `
       ${note ? `<p class="mb-3 text-xs text-slate-500 dark:text-slate-400">${note}</p>` : ''}
+      <label class="field-label">${potLabel}</label>
+      ${potPickerHtml()}
       <label class="field-label">Nominal (Rp) *</label>
       <input data-nom data-rp inputmode="numeric" class="input" />
       <label class="field-label mt-3">Keterangan *</label>
@@ -310,6 +365,7 @@ function amountModal({ title, icon, tone, note, confirmText, onSubmit }) {
     </div>`,
     onMount: (ctrl) => {
       bindRupiahInputs(ctrl.root);
+      const getPot = wirePotPicker(ctrl, 'gabungan', potNote);
       ctrl.query('[data-cancel]').addEventListener('click', ctrl.close);
       ctrl.query('[data-ok]').addEventListener('click', async () => {
         const nom = parseNum(ctrl.query('[data-nom]').dataset.raw);
@@ -320,7 +376,7 @@ function amountModal({ title, icon, tone, note, confirmText, onSubmit }) {
         ok.disabled = true;
         ok.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
         try {
-          await onSubmit(nom, ket, ctrl);
+          await onSubmit(nom, ket, getPot(), ctrl);
           ctrl.close();
         } catch (err) {
           ok.disabled = false;
@@ -339,34 +395,48 @@ function openTambah() {
     tone: 'btn-success',
     confirmText: 'Simpan',
     note: 'Menambah pemasukan manual ke laci kas (mis. tambahan kembalian, modal awal).',
-    onSubmit: async (nom, ket) => {
-      await tambahKas(nom, ket);
-      toast('Pemasukan berhasil ditambahkan.');
+    potLabel: 'Masuk ke *',
+    potNote: {
+      gabungan: 'Masuk ke kas gabungan — ikut terhitung sebagai kas yang dapat digunakan.',
+      safe: 'Disisihkan ke safe deposit — tidak dihitung sebagai kas yang dapat digunakan.',
+    },
+    onSubmit: async (nom, ket, pot) => {
+      await tambahKas(nom, ket, pot);
+      toast(pot === 'safe' ? 'Pemasukan masuk ke safe deposit.' : 'Pemasukan berhasil ditambahkan.');
       kas.refresh();
     },
   });
 }
 
 function openTarik() {
+  const safe = calculateSafeDeposit();
+  const gabungan = calculateSaldo() - safe;
   amountModal({
     title: 'Penarikan Kas',
     icon: 'fa-check',
     tone: 'btn-danger',
     confirmText: 'Tarik',
-    note: `Saldo tersedia: ${formatRp(calculateSaldo())}.`,
-    onSubmit: async (nom, ket) => {
-      if (nom > calculateSaldo()) {
-        toast('Saldo tidak mencukupi.', 'error');
+    note: `Saldo gabungan: ${formatRp(gabungan)} · Safe deposit: ${formatRp(safe)}.`,
+    potLabel: 'Ambil dari *',
+    potNote: {
+      gabungan: `Mengurangi kas gabungan. Tersedia ${formatRp(gabungan)}.`,
+      safe: `Mengurangi saldo safe deposit. Tersedia ${formatRp(safe)}.`,
+    },
+    onSubmit: async (nom, ket, pot) => {
+      const tersedia = pot === 'safe' ? safe : gabungan;
+      if (nom > tersedia) {
+        toast(`Saldo ${pot === 'safe' ? 'safe deposit' : 'gabungan'} tidak mencukupi.`, 'error');
         throw new Error('handled');
       }
-      await tarikKas(nom, ket);
-      toast('Penarikan berhasil dicatat.');
+      await tarikKas(nom, ket, pot);
+      toast(pot === 'safe' ? 'Penarikan dari safe deposit dicatat.' : 'Penarikan berhasil dicatat.');
       kas.refresh();
     },
   });
 }
 
 function openEdit(k) {
+  const potAwal = potKas(k);
   openModal({
     size: 'sm',
     title: 'Edit Transaksi Kas',
@@ -374,13 +444,19 @@ function openEdit(k) {
       <label class="field-label">Keterangan transaksi</label>
       <input data-ket class="input" value="${esc(k.ket)}" />
       <label class="field-label mt-3">Nominal (Rp)</label>
-      <input data-nom data-rp inputmode="numeric" class="input" value="${Number(k.nominal).toLocaleString('id-ID')}" />`,
+      <input data-nom data-rp inputmode="numeric" class="input" value="${Number(k.nominal).toLocaleString('id-ID')}" />
+      <label class="field-label mt-3">Kategori</label>
+      ${potPickerHtml()}`,
     footer: `<div class="flex gap-2">
       <button data-cancel class="btn btn-ghost flex-1">Batal</button>
       <button data-ok class="btn btn-primary flex-1">Simpan Perubahan</button>
     </div>`,
     onMount: (ctrl) => {
       bindRupiahInputs(ctrl.root);
+      const getPot = wirePotPicker(ctrl, potAwal, {
+        gabungan: 'Kas gabungan — ikut terhitung sebagai kas yang dapat digunakan.',
+        safe: 'Safe deposit — disisihkan, tidak dihitung sebagai kas yang dapat digunakan.',
+      });
       ctrl.query('[data-cancel]').addEventListener('click', ctrl.close);
       ctrl.query('[data-ok]').addEventListener('click', async () => {
         const ket = ctrl.query('[data-ket]').value.trim();
@@ -390,9 +466,13 @@ function openEdit(k) {
         ok.disabled = true;
         ok.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
         try {
-          await updateKas(k.id, ket, nom);
+          await updateKas(k.id, ket, nom, getPot());
           ctrl.close();
-          toast('Transaksi kas diperbarui.');
+          toast(
+            getPot() !== potAwal
+              ? `Transaksi dipindah ke ${getPot() === 'safe' ? 'safe deposit' : 'kas gabungan'}.`
+              : 'Transaksi kas diperbarui.'
+          );
           kas.refresh();
         } catch {
           ok.disabled = false;

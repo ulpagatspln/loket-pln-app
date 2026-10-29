@@ -213,6 +213,30 @@ berbentuk badge gradasi, sidebar dengan pill aktif, dan topbar berisi sapaan + t
 Catatan: setelah mengubah `tailwind.config.js`, **restart dev server** — proses Vite yang
 sedang jalan memakai konfigurasi lama dan `@apply` untuk utility baru akan error.
 
+## Safe Deposit (pot kas)
+
+Tiap transaksi kas punya field **`pot`**: `gabungan` (default) atau `safe`. Dokumen lama
+tanpa field ini otomatis dianggap `gabungan` (`potKas()` di `store.js`).
+
+- **Gabungan** — kas operasional biasa: pembayaran pelanggan, saving loket, dan pemasukan
+  manual yang dipilih "Gabungan".
+- **Safe Deposit** — uang yang sengaja disisihkan. Masih bagian dari **Total Saldo Kas**
+  (uang fisik yang sama), tapi **tidak** dihitung sebagai kas yang bisa dipakai.
+
+```
+Kas yang Dapat Digunakan = Total Saldo Kas − Titipan NIDI+SLO − Safe Deposit
+```
+
+- `calculateSafeDeposit()` di `store.js` = Σ pemasukan pot `safe` − Σ penarikan pot `safe`.
+- **Buku Kas**: tombol **Tambah**, **Tarik**, dan modal **Edit Transaksi** punya pilihan
+  **Gabungan / Safe Deposit** (markup bersama: `potPickerHtml()` + `wirePotPicker()`).
+  Edit memakai pot transaksi itu sebagai nilai awal, jadi transaksi lama bisa dipindah potnya.
+  Penarikan divalidasi per pot (tidak bisa menarik melebihi saldo pot yang dipilih).
+  Ada kotak saldo **Safe Deposit** di header, badge ungu di tiap transaksi safe deposit,
+  dan filter **"Semua Pot"**.
+- **Dashboard**: kartu **Safe Deposit** di samping "Kas yang Dapat Digunakan"; klik →
+  Buku Kas terfilter pot `safe` (`goToKas({ pot: safe })` di `kas.js`).
+
 ## Catatan keamanan
 
 Login (`admin`/`admin`) dan password admin gate masih di sisi klien — sama seperti

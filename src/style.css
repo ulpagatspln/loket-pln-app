@@ -112,6 +112,16 @@
     @apply bg-grad-gold shadow-glow-gold;
   }
 
+  /* Pilihan pot kas: Gabungan / Safe Deposit (modal tambah & tarik) */
+  .pot-btn {
+    @apply flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-semibold
+      text-slate-600 transition-all hover:bg-slate-50
+      dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10;
+  }
+  .pot-btn-active {
+    @apply border-transparent bg-grad-pln text-white shadow-glow-pln hover:brightness-110 dark:bg-grad-pln dark:text-white;
+  }
+
   /* Kapsul kecil (tanggal, filter, info di topbar) */
   .pill {
     @apply inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold
