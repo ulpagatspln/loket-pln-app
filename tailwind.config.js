@@ -62,6 +62,7 @@ export default {
         pop: '0 20px 45px -12px rgba(15, 23, 42, 0.28)',
         'glow-pln': '0 10px 26px -10px rgba(27, 117, 187, 0.75)',
         'glow-iris': '0 10px 26px -10px rgba(124, 92, 252, 0.75)',
+        'glow-teal': '0 10px 26px -10px rgba(20, 184, 166, 0.75)',
         'glow-leaf': '0 10px 26px -10px rgba(140, 198, 63, 0.7)',
         'glow-gold': '0 10px 26px -10px rgba(247, 166, 0, 0.7)',
       },
@@ -73,6 +74,7 @@ export default {
       backgroundImage: {
         'grad-pln': 'linear-gradient(135deg, #1B75BB 0%, #7c5cfc 100%)',
         'grad-iris': 'linear-gradient(135deg, #7c5cfc 0%, #4f8dfd 100%)',
+        'grad-teal': 'linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%)',
         'grad-leaf': 'linear-gradient(135deg, #8CC63F 0%, #22c58a 100%)',
         'grad-gold': 'linear-gradient(135deg, #F7A600 0%, #fb7185 100%)',
       },

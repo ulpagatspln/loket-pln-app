@@ -13,6 +13,9 @@ import { openPermForm } from './permForm.js';
 let chart;
 // Bulan yang ditampilkan di grafik: 0 = bulan berjalan, -1 = bulan lalu, dst.
 let bulanOffset = 0;
+// Saat pertama kali dibuka, lompat ke bulan terakhir yang ada transaksinya
+// (mis. tanggal 1 awal bulan, bulan berjalan masih kosong).
+let bulanSudahDisetel = false;
 
 // Urutan & warna kartu ringkasan penanda NIDI+SLO di dashboard.
 const NIDI_STATUS_ORDER = [
@@ -41,7 +44,7 @@ export const dashboard = {
         <h2 class="text-lg font-extrabold text-slate-900 dark:text-white md:text-xl">Dashboard</h2>
         <p class="text-sm text-slate-500 dark:text-slate-400">Ringkasan kas dan monitoring progres permohonan.</p>
       </div>
-      <div data-metrics class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5"></div>
+      <div data-metrics class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6"></div>
       <div class="mb-6 grid gap-4 lg:grid-cols-3">
         <div class="card min-w-0 p-4 lg:col-span-2">
           <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -135,7 +138,7 @@ export const dashboard = {
   refresh() {
     if (!this.el) return;
     if (!state.ready) {
-      this.el.querySelector('[data-metrics]').innerHTML = skeletonCards(5);
+      this.el.querySelector('[data-metrics]').innerHTML = skeletonCards(6);
       return;
     }
     const saldo = calculateSaldo();
@@ -191,13 +194,21 @@ export const dashboard = {
     const safeDeposit = calculateSafeDeposit();
     const kasDapatDigunakan = Math.max(0, saldo - nidiRp.titip - safeDeposit);
     this.el.querySelector('[data-metrics]').innerHTML = [
-      statCard({ label: 'Total Saldo Kas', value: formatRp(saldo), icon: 'fa-wallet', tone: 'pln' }),
+      statCard({ label: 'Total Saldo Kas', value: formatRp(saldo), icon: 'fa-wallet', tone: 'teal' }),
       statCard({
         label: 'Kas yang Dapat Digunakan',
         value: formatRp(kasDapatDigunakan),
         icon: 'fa-sack-dollar',
-        tone: 'iris',
+        tone: 'pln',
         sub: `− Titipan NIDI+SLO ${formatRp(nidiRp.titip)} − Safe deposit ${formatRp(safeDeposit)}`,
+      }),
+      statCard({
+        label: 'Titipan NIDI+SLO',
+        value: formatRp(nidiRp.titip),
+        icon: 'fa-hand-holding-dollar',
+        tone: 'gold',
+        sub: `${nidiCount.titip} permohonan menitipkan, belum disetor`,
+        onClick: 'nidi-tanda:titip',
       }),
       statCard({
         label: 'Safe Deposit',
@@ -207,7 +218,7 @@ export const dashboard = {
         sub: 'Disisihkan, tidak dipakai operasional',
         onClick: 'kas-safe',
       }),
-      statCard({ label: 'Menunggu Pembayaran', value: `${waiting} berkas`, icon: 'fa-clock', tone: 'gold', onClick: 'wait' }),
+      statCard({ label: 'Menunggu Pembayaran', value: `${waiting} berkas`, icon: 'fa-clock', tone: 'red', onClick: 'wait' }),
       statCard({ label: 'Permohonan Lunas', value: `${lunas} berkas`, icon: 'fa-file-circle-check', tone: 'leaf', onClick: 'lunas' }),
     ].join('');
 
@@ -398,6 +409,18 @@ export const dashboard = {
     const canvas = this.el.querySelector('[data-chart]');
     if (!canvas || !window.Chart) return;
     const now = new Date();
+
+    if (!bulanSudahDisetel && state.kas.length) {
+      bulanSudahDisetel = true;
+      for (let i = 0; i < 24; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const ada = state.kas.some((k) => {
+          const kd = new Date(k.date);
+          return kd.getMonth() === d.getMonth() && kd.getFullYear() === d.getFullYear();
+        });
+        if (ada) { bulanOffset = -i; break; }
+      }
+    }
 
     // Bulan yang sedang ditampilkan (bisa digeser lewat tombol panah)
     const bulan = new Date(now.getFullYear(), now.getMonth() + bulanOffset, 1);

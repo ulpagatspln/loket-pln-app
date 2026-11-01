@@ -4,6 +4,7 @@ export const statCard = ({ label, value, icon, tone = 'pln', sub = '', onClick =
   const tones = {
     pln: 'icon-pln',
     iris: 'icon-iris',
+    teal: 'icon-teal',
     gold: 'icon-gold',
     leaf: 'icon-leaf',
     amber: 'icon-gold',
@@ -51,7 +52,7 @@ export const skeletonRows = (n = 5) =>
     .join('');
 
 export const skeletonCards = (n = 3) =>
-  `<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">${Array.from({ length: n })
+  `<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">${Array.from({ length: n })
     .map(() => `<div class="card p-4"><div class="skeleton mb-3 h-12 w-12 rounded-xl"></div><div class="skeleton mb-2 h-3 w-1/2"></div><div class="skeleton h-5 w-2/3"></div></div>`)
     .join('')}</div>`;
 

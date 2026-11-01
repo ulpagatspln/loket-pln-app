@@ -240,6 +240,16 @@ Kas yang Dapat Digunakan = Total Saldo Kas − Titipan NIDI+SLO − Safe Deposit
 - **Dashboard**: kartu **Safe Deposit** di samping "Kas yang Dapat Digunakan"; klik →
   Buku Kas terfilter pot `safe` (`goToKas({ pot: safe })` di `kas.js`).
 
+### Kartu metrik dashboard
+
+Enam kartu, masing-masing warna gradasi berbeda (`tone` pada `statCard`):
+Total Saldo Kas (teal) · Kas yang Dapat Digunakan (biru PLN) · Titipan NIDI+SLO (kuning,
+klik → permohonan berpenanda titip) · Safe Deposit (ungu, klik → Buku Kas pot safe) ·
+Menunggu Pembayaran (merah) · Permohonan Lunas (hijau).
+
+Grafik otomatis membuka **bulan terakhir yang ada transaksinya** saat pertama dibuka
+(`bulanSudahDisetel` di `dashboard.js`), supaya di awal bulan tidak tampil grafik kosong.
+
 ### Analisa Pengeluaran Kas (dashboard)
 
 Panel di bawah grafik memecah **semua uang keluar** bulan terpilih jadi dua kelompok

@@ -105,6 +105,9 @@
   .icon-iris {
     @apply bg-grad-iris shadow-glow-iris;
   }
+  .icon-teal {
+    @apply bg-grad-teal shadow-glow-teal;
+  }
   .icon-leaf {
     @apply bg-grad-leaf shadow-glow-leaf;
   }
