@@ -199,15 +199,26 @@ export function nidiSloWajib(p) {
  */
 export function rincianDana(p, kasRows, hargaRows, tdRows) {
   if (!p) return null;
-  const forP = (m) => kasRows.find((k) => k.refId === p.id && (k.ket || '').includes(m));
+  // Semua baris dijumlah (bukan hanya yang pertama): satu permohonan bisa punya
+  // lebih dari satu pembayaran/pengeluaran untuk jenis yang sama.
+  const forP = (m) =>
+    kasRows
+      .filter(
+        (k) =>
+          k.refId === p.id &&
+          k.tipe !== 'Pemasukan' &&
+          k.tipe !== 'Penarikan' &&
+          (k.ket || '').includes(m)
+      )
+      .reduce((s, k) => s + (k.nominal || 0), 0);
   const masuk = kasRows
     .filter((k) => k.refId === p.id && k.tipe === 'Pemasukan')
     .reduce((s, k) => s + (k.nominal || 0), 0);
   if (masuk <= 0) return null;
 
-  const ppob = forP('PPOB')?.nominal || 0;
-  const jasaPasangPaid = forP('Pemasangan')?.nominal || 0;
-  const nidiPaid = forP('NIDI')?.nominal || 0;
+  const ppob = forP('PPOB');
+  const jasaPasangPaid = forP('Pemasangan');
+  const nidiPaid = forP('NIDI');
   const sisa = masuk - ppob - jasaPasangPaid - nidiPaid;
 
   const ref = hargaTotalUntuk(p, hargaRows, tdRows);

@@ -1,5 +1,4 @@
 import { buktiDoc, setDoc, getDoc } from '../firebase.js';
-import { generateId } from './format.js';
 
 /**
  * Kompres gambar di sisi klien memakai canvas.
@@ -54,7 +53,9 @@ function loadImage(file) {
 
 /** Simpan foto (data URL JPEG) ke koleksi `bukti`. Return id dokumen. */
 export async function savePhoto(dataUrl, meta = {}) {
-  const id = generateId('IMG');
+  // Koleksi bukti tidak di-listen, jadi keunikan tak bisa dicek dari state:
+  // pakai stempel waktu + acak supaya foto lama tidak tertimpa.
+  const id = `IMG-${Date.now().toString(36)}-${Math.floor(1000 + Math.random() * 9000)}`;
   await setDoc(buktiDoc(id), {
     id,
     data: dataUrl,

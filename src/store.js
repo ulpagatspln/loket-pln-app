@@ -167,10 +167,29 @@ export async function seedTambahDaya(defaults) {
   }
 }
 
+/**
+ * ID acak yang dipastikan belum terpakai. generateId hanya punya 9.000 kemungkinan,
+ * sehingga tanpa pemeriksaan ini dokumen lama bisa tertimpa dan transaksi kas lama
+ * ikut menempel ke permohonan baru (refId sama).
+ */
+function idBaru(prefix, terpakai) {
+  for (let i = 0; i < 100; i++) {
+    const id = generateId(prefix);
+    if (!terpakai.has(id)) return id;
+  }
+  return `${prefix}-${Date.now().toString().slice(-7)}`;
+}
+const idPermohonanTerpakai = () =>
+  new Set([
+    ...state.permohonan.map((p) => p.id),
+    ...state.kas.map((k) => k.refId).filter(Boolean), // ID yang masih punya jejak kas
+  ]);
+const idKasTerpakai = () => new Set(state.kas.map((k) => k.id));
+
 /* ============ PERMOHONAN ============ */
 
 export async function createPermohonan(data) {
-  const id = generateId('REQ');
+  const id = idBaru('REQ', idPermohonanTerpakai());
   await setDoc(permDoc(id), {
     ...data,
     id,
@@ -226,7 +245,7 @@ export async function deletePermohonan(id) {
 export async function prosesBayar(id, nominal, link) {
   const p = state.permohonan.find((x) => x.id === id);
   await setDoc(permDoc(id), { status: 'Lunas', step: 0 }, { merge: true });
-  const kId = generateId('K');
+  const kId = idBaru('K', idKasTerpakai());
   await setDoc(kasDoc(kId), {
     id: kId,
     date: new Date().toISOString(),
@@ -242,7 +261,7 @@ export async function prosesBayar(id, nominal, link) {
 export async function completeStepWithCost(id, stepIndex, costName, { cost, link, buktiId, agenda, pemasang }) {
   const p = state.permohonan.find((x) => x.id === id);
   if (!p || p.step !== stepIndex) return;
-  const kId = generateId('K');
+  const kId = idBaru('K', idKasTerpakai());
   const kasData = {
     id: kId,
     date: new Date().toISOString(),
@@ -282,7 +301,7 @@ export async function advanceStep(id, stepIndex, { agenda = '', pemasang = '' } 
 /* ============ KAS ============ */
 
 export async function tambahKas(nominal, ket, pot = 'gabungan') {
-  const kId = generateId('IN');
+  const kId = idBaru('IN', idKasTerpakai());
   await setDoc(kasDoc(kId), {
     id: kId, date: new Date().toISOString(), ket, tipe: 'Pemasukan', nominal,
     pot: pot === 'safe' ? 'safe' : 'gabungan',
@@ -290,7 +309,7 @@ export async function tambahKas(nominal, ket, pot = 'gabungan') {
 }
 
 export async function tarikKas(nominal, ket, pot = 'gabungan') {
-  const kId = generateId('TRK');
+  const kId = idBaru('TRK', idKasTerpakai());
   await setDoc(kasDoc(kId), {
     id: kId, date: new Date().toISOString(), ket, tipe: 'Penarikan', nominal,
     pot: pot === 'safe' ? 'safe' : 'gabungan',
