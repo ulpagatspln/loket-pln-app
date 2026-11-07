@@ -101,10 +101,20 @@ Menu **Daftar Harga** (tab ke-4) dengan 2 sub-tab:
 (admin). Baris bisa diedit admin (ikon pensil). Tabel NIDI+SLO bisa **tambah / hapus** baris.
 Kolom kiri (Daya/Daya Sebelum) dibekukan saat tabel di-scroll di HP.
 
-Angka **BP/PD & Total** = tabel PLN **dikurangi Rp 100.000** (loket tidak menyertakan token
-100rb). `PB_RAW` / `td()` di `src/lib/harga.js` menyimpan nilai mentah lalu memotong 100rb di
-satu tempat. Setelah mengubah nilai bawaan, jalankan `node scripts/seed-harga.mjs` untuk
-menulis ulang koleksi Firestore.
+**Pasang Baru** (per 2026-11-07): kolom **BP** tetap tanpa token, **Token Rp 100.000** jadi
+komponen tersendiri, dan **Total** kembali utuh seperti tabel PLN (BP + Token +
+NIDI+SLO+Materai+JSPIA). Token dijual seharga belinya sehingga tidak menambah margin.
+
+**Jasa pasang & saving Pasang Baru** (`jasaPasangDefault()` / `jasaPasangPanelDefault()`):
+900 VA Rp 300.000 · 1.300–5.500 VA Rp 500.000 · di atas 5.500 VA (3 fasa) Rp 1.000.000 tanpa
+panel atau **Rp 1.500.000 dengan panel** (kolom `jasaPasangPanel`). **Saving = JSPIA − jasa
+pasang**, dihitung ulang otomatis; baris 3 fasa juga punya `savingPanel`.
+
+**Tambah Daya** masih memakai pola lama: PD & Total dikurangi Rp 100.000 lewat `td()`.
+
+Setelah mengubah nilai bawaan, jalankan `node scripts/seed-harga.mjs` untuk menulis ulang
+koleksi Firestore (skrip ini menimpa `harga` **dan** `hargaTambahDaya` — cek dulu kalau ada
+editan manual admin).
 
 ### Penanda biaya vs daftar harga
 

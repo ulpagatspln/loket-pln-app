@@ -10,14 +10,27 @@ const TOKEN = 100000;
 export const HARGA_COLS = [
   { key: 'bpRt', label: 'BP (RT)', group: 'BP', sub: 'RT' },
   { key: 'bpNonRt', label: 'BP (Selain RT)', group: 'BP', sub: 'Selain RT' },
+  { key: 'token', label: 'Token', group: '', sub: '' },
   { key: 'nidiSlo', label: 'NIDI + SLO', group: '', sub: '' },
   { key: 'jspia', label: 'JSPIA', group: '', sub: '' },
   { key: 'nidiSloMatJspia', label: 'NIDI + SLO + Materai + JSPIA', group: '', sub: '' },
   { key: 'totalRt', label: 'Total (RT)', group: 'Total', sub: 'RT', total: true },
   { key: 'totalNonRt', label: 'Total (Selain RT)', group: 'Total', sub: 'Selain RT', total: true },
   { key: 'jasaPasang', label: 'Jasa Pasang', group: '', sub: '' },
+  { key: 'jasaPasangPanel', label: 'Jasa Pasang (dengan panel)', group: '', sub: '' },
   { key: 'saving', label: 'Saving', group: '', sub: '' },
+  { key: 'savingPanel', label: 'Saving (dengan panel)', group: '', sub: '' },
 ];
+
+// Batas daya yang dianggap 3 fasa untuk penentuan jasa pasang.
+export const JASA_3FASA_MIN_DAYA = 5500;
+
+/** Jasa pasang bawaan per daya: 900 VA tetap 300rb, 1.300–5.500 500rb, di atas itu 1 jt. */
+export const jasaPasangDefault = (daya) =>
+  daya === 900 ? 300000 : daya > JASA_3FASA_MIN_DAYA ? 1000000 : 500000;
+
+/** Jasa pasang bila pemasangan memakai panel (hanya untuk 3 fasa / daya di atas 5.500). */
+export const jasaPasangPanelDefault = (daya) => (daya > JASA_3FASA_MIN_DAYA ? 1500000 : 0);
 
 // Nilai mentah = persis tabel PLN (termasuk token 100rb). Transform di bawah mengurangi 100rb.
 const PB_RAW = [
@@ -36,13 +49,23 @@ const PB_RAW = [
   { daya: 33000, bpRt: 35604470, bpNonRt: 32087000, nidiSlo: 3330000, jspia: 9900000, nidiSloMatJspia: 13230000, totalRt: 48834470, totalNonRt: 45317000, jasaPasang: 900000, saving: 9000000 },
 ];
 
-export const DEFAULT_HARGA = PB_RAW.map((r) => ({
-  ...r,
-  bpRt: r.bpRt - TOKEN,
-  bpNonRt: r.bpNonRt - TOKEN,
-  totalRt: r.totalRt - TOKEN,
-  totalNonRt: r.totalNonRt - TOKEN,
-}));
+// BP ditampilkan tanpa token, lalu token Rp 100.000 jadi komponen tersendiri —
+// Total kembali utuh seperti tabel PLN (BP + Token + NIDI+SLO+Materai+JSPIA).
+// Saving = JSPIA − jasa pasang (token dijual seharga belinya, tidak menambah margin).
+export const DEFAULT_HARGA = PB_RAW.map((r) => {
+  const jasaPasang = jasaPasangDefault(r.daya);
+  const jasaPasangPanel = jasaPasangPanelDefault(r.daya);
+  return {
+    ...r,
+    bpRt: r.bpRt - TOKEN,
+    bpNonRt: r.bpNonRt - TOKEN,
+    token: TOKEN,
+    jasaPasang,
+    jasaPasangPanel,
+    saving: r.jspia - jasaPasang,
+    savingPanel: jasaPasangPanel ? r.jspia - jasaPasangPanel : 0,
+  };
+});
 
 export const activeHarga = (rows) =>
   (rows && rows.length ? [...rows] : [...DEFAULT_HARGA]).sort((a, b) => a.daya - b.daya);

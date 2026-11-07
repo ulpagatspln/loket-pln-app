@@ -15,13 +15,16 @@ import { bindRupiahInputs, emptyState } from '../ui/components.js';
 const PB_FIELDS = [
   { key: 'bpRt', label: 'BP — RT' },
   { key: 'bpNonRt', label: 'BP — Selain RT' },
+  { key: 'token', label: 'Token' },
   { key: 'nidiSlo', label: 'NIDI + SLO' },
   { key: 'jspia', label: 'JSPIA' },
   { key: 'nidiSloMatJspia', label: 'NIDI + SLO + Materai + JSPIA' },
   { key: 'totalRt', label: 'Total — RT' },
   { key: 'totalNonRt', label: 'Total — Selain RT' },
   { key: 'jasaPasang', label: 'Jasa Pasang' },
+  { key: 'jasaPasangPanel', label: 'Jasa Pasang — dengan panel (3 fasa)' },
   { key: 'saving', label: 'Saving' },
+  { key: 'savingPanel', label: 'Saving — dengan panel' },
 ];
 
 let pane = 'pb'; // 'pb' | 'td'
@@ -38,7 +41,7 @@ export const harga = {
     el.innerHTML = `
       <div class="mb-4">
         <h2 class="text-lg font-extrabold text-slate-900 dark:text-white md:text-xl">Daftar Harga</h2>
-        <p class="text-sm text-slate-500 dark:text-slate-400"><b>RT</b> = Rumah Tangga, <b>Selain RT</b> = non-rumah tangga. Harga BP/PD &amp; Total sudah <b>tanpa token Rp 100.000</b>.</p>
+        <p class="text-sm text-slate-500 dark:text-slate-400"><b>RT</b> = Rumah Tangga, <b>Selain RT</b> = non-rumah tangga. Kolom <b>BP/PD</b> belum termasuk token; untuk Pasang Baru token <b>Rp 100.000</b> jadi komponen tersendiri dan sudah ikut di <b>Total</b>.</p>
       </div>
 
       <div class="mb-5 inline-flex flex-wrap rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
@@ -195,9 +198,14 @@ export const harga = {
     const total = calcPb.rt ? r.totalRt : r.totalNonRt;
     host.querySelector('[data-calc-out]').innerHTML =
       tile('BP', bp) +
+      tile('Token', r.token || 0) +
       tile('NIDI + SLO + Materai + JSPIA', r.nidiSloMatJspia) +
       tile('Total Dibayar Pelanggan', total, 'accent') +
-      tile('Saving Loket', r.saving, 'gold');
+      tile(r.jasaPasangPanel ? 'Jasa Pasang (tanpa panel)' : 'Jasa Pasang', r.jasaPasang) +
+      tile('Saving Loket', r.saving, 'gold') +
+      (r.jasaPasangPanel
+        ? tile('Jasa Pasang (dengan panel)', r.jasaPasangPanel) + tile('Saving (dengan panel)', r.savingPanel, 'gold')
+        : '');
   },
 
   /* ---------- TAMBAH DAYA ---------- */
@@ -349,11 +357,12 @@ function pbTableHtml(rows) {
   const stickyTh = `${TH} !text-left sticky left-0 z-20 bg-slate-50 dark:bg-slate-800`;
   const stickyTd = 'sticky left-0 z-10 bg-white p-2.5 font-bold text-slate-900 dark:bg-slate-900 dark:text-white';
   return `
-    <table class="w-full min-w-[820px] text-sm">
+    <table class="w-full min-w-[900px] text-sm">
       <thead class="bg-slate-50 dark:bg-slate-800/60">
         <tr>
           <th rowspan="2" class="${stickyTh}">Daya (VA)</th>
           <th colspan="2" class="${TH} !text-center border-x border-slate-200 dark:border-slate-700">BP</th>
+          <th rowspan="2" class="${TH}">Token</th>
           <th rowspan="2" class="${TH}">NIDI + SLO</th>
           <th rowspan="2" class="${TH}">JSPIA</th>
           <th rowspan="2" class="${TH}">NIDI+SLO+<br>Materai+JSPIA</th>
@@ -375,13 +384,22 @@ function pbTableHtml(rows) {
             <td class="${stickyTd}">${vaFmt(r.daya)}</td>
             <td class="${TD}">${formatRp(r.bpRt)}</td>
             <td class="${TD}">${formatRp(r.bpNonRt)}</td>
+            <td class="${TD}">${r.token ? formatRp(r.token) : '–'}</td>
             <td class="${TD}">${r.nidiSlo ? formatRp(r.nidiSlo) : '–'}</td>
             <td class="${TD}">${formatRp(r.jspia)}</td>
             <td class="${TD}">${formatRp(r.nidiSloMatJspia)}</td>
             <td class="${TD} bg-gold-500/5 font-bold text-slate-900 dark:text-white">${formatRp(r.totalRt)}</td>
             <td class="${TD} bg-gold-500/5 font-bold text-slate-900 dark:text-white">${formatRp(r.totalNonRt)}</td>
-            <td class="${TD}">${formatRp(r.jasaPasang)}</td>
-            <td class="${TD} font-semibold text-leaf-600 dark:text-leaf-400">${formatRp(r.saving)}</td>
+            <td class="${TD} whitespace-nowrap">${formatRp(r.jasaPasang)}${
+              r.jasaPasangPanel
+                ? `<span class="block text-[10px] text-slate-400">+ panel: ${formatRp(r.jasaPasangPanel)}</span>`
+                : ''
+            }</td>
+            <td class="${TD} whitespace-nowrap font-semibold text-leaf-600 dark:text-leaf-400">${formatRp(r.saving)}${
+              r.savingPanel
+                ? `<span class="block text-[10px] font-normal text-slate-400">+ panel: ${formatRp(r.savingPanel)}</span>`
+                : ''
+            }</td>
             <td class="p-2.5 text-center"><button data-edit-pb="${r.daya}" class="btn-icon btn-ghost" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button></td>
           </tr>`).join('')}
       </tbody>
